@@ -641,6 +641,43 @@ main {
   font: inherit;
 }
 
+.backup-preview {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.backup-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.backup-preview-grid > div {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.backup-preview-grid strong {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.backup-preview-grid ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.backup-preview-grid p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .dashboard-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

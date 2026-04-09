@@ -92,6 +92,14 @@ interface LegacyBrainCurlsBackup {
   session?: SessionState | null;
 }
 
+export interface BackupPreview {
+  version: number;
+  exportedAt: string | null;
+  imported: BrainCurlsState;
+  conflicts: string[];
+  changes: string[];
+}
+
 const STORAGE_KEY = "brain-curls:state:v1";
 const BACKUP_VERSION = 2;
 const MAX_RECENT_RUNS = 8;
@@ -201,6 +209,54 @@ function parseBackup(raw: string): LegacyBrainCurlsBackup {
   }
 
   return parsed as LegacyBrainCurlsBackup;
+}
+
+export function previewBrainCurlsBackup(raw: string): BackupPreview {
+  const parsed = JSON.parse(raw) as Partial<BrainCurlsBackup> | LegacyBrainCurlsBackup;
+  const version = typeof parsed === "object" && parsed && "version" in parsed ? Number(parsed.version) : 1;
+  const exportedAt = typeof parsed === "object" && parsed && "exportedAt" in parsed && typeof parsed.exportedAt === "string"
+    ? parsed.exportedAt
+    : null;
+  const imported = normalizeState(parseBackup(raw));
+  const changes: string[] = [];
+  const conflicts: string[] = [];
+
+  if (imported.progress.totalRuns !== state.progress.totalRuns) {
+    changes.push(`Runs: ${state.progress.totalRuns} -> ${imported.progress.totalRuns}`);
+  }
+  if (imported.progress.totalScore !== state.progress.totalScore) {
+    changes.push(`Score: ${state.progress.totalScore} -> ${imported.progress.totalScore}`);
+  }
+  if (imported.settings.dailySessionMode !== state.settings.dailySessionMode) {
+    changes.push(`Mode: ${state.settings.dailySessionMode} -> ${imported.settings.dailySessionMode}`);
+  }
+  if (imported.settings.dailySessionMinutes !== state.settings.dailySessionMinutes) {
+    changes.push(`Length: ${state.settings.dailySessionMinutes} -> ${imported.settings.dailySessionMinutes}`);
+  }
+  if (imported.settings.audioEnabled !== state.settings.audioEnabled) {
+    changes.push(`Audio: ${state.settings.audioEnabled ? "on" : "off"} -> ${imported.settings.audioEnabled ? "on" : "off"}`);
+  }
+  if (imported.settings.hapticsEnabled !== state.settings.hapticsEnabled) {
+    changes.push(`Haptics: ${state.settings.hapticsEnabled ? "on" : "off"} -> ${imported.settings.hapticsEnabled ? "on" : "off"}`);
+  }
+  if (imported.settings.reducedMotion !== state.settings.reducedMotion) {
+    changes.push(`Motion: ${state.settings.reducedMotion ? "reduced" : "full"} -> ${imported.settings.reducedMotion ? "reduced" : "full"}`);
+  }
+
+  if (imported.progress.totalRuns < state.progress.totalRuns) {
+    conflicts.push("The backup has fewer runs than your current local state.");
+  }
+  if (imported.progress.totalScore < state.progress.totalScore) {
+    conflicts.push("The backup has a lower total score than your current local state.");
+  }
+  if (imported.progress.currentStreak < state.progress.currentStreak) {
+    conflicts.push("The backup would reduce your current streak.");
+  }
+  if (imported.progress.bestStreak < state.progress.bestStreak) {
+    conflicts.push("The backup would reduce your best streak.");
+  }
+
+  return { version, exportedAt, imported, conflicts, changes };
 }
 
 let state = loadState();

@@ -4,9 +4,11 @@ import { Card } from "../components/card";
 import { SectionHeading } from "../components/section-heading";
 import { getLengthLabel, getModeLabel, type DailySessionLength, type DailySessionMode } from "../lib/session-builder";
 import {
+  type BackupPreview,
   importBrainCurlsBackup,
   resetAllData,
   serializeBrainCurlsBackup,
+  previewBrainCurlsBackup,
   setAudioEnabled,
   setDailySessionPreferences,
   setHapticsEnabled,
@@ -55,10 +57,25 @@ export function SettingsPage() {
   const [backupText, setBackupText] = useState("");
   const [backupMessage, setBackupMessage] = useState("Export a backup or paste one here to restore your state.");
   const [backupMeta, setBackupMeta] = useState<{ version: number; exportedAt: string } | null>(null);
+  const [backupPreview, setBackupPreview] = useState<BackupPreview | null>(null);
+
+  const refreshBackupPreview = (text: string) => {
+    if (!text.trim()) {
+      setBackupPreview(null);
+      return;
+    }
+
+    try {
+      setBackupPreview(previewBrainCurlsBackup(text));
+    } catch {
+      setBackupPreview(null);
+    }
+  };
 
   const handleExport = () => {
     const backup = serializeBrainCurlsBackup();
     setBackupText(backup);
+    refreshBackupPreview(backup);
     try {
       const parsed = JSON.parse(backup) as { version?: number; exportedAt?: string };
       setBackupMeta({
@@ -83,6 +100,7 @@ export function SettingsPage() {
   const handleImport = () => {
     try {
       importBrainCurlsBackup(backupText);
+      refreshBackupPreview(backupText);
       const parsed = JSON.parse(backupText) as { version?: number; exportedAt?: string };
       setBackupMeta({
         version: typeof parsed.version === "number" ? parsed.version : 1,
@@ -101,6 +119,7 @@ export function SettingsPage() {
 
     const text = await file.text();
     setBackupText(text);
+    refreshBackupPreview(text);
     setBackupMessage(`Loaded ${file.name}. Review the JSON and import it when ready.`);
   };
 
@@ -186,6 +205,42 @@ export function SettingsPage() {
             <span>{backupMeta.exportedAt === "legacy" ? "Legacy backup" : new Date(backupMeta.exportedAt).toLocaleString()}</span>
           </div>
         )}
+        {backupPreview && (
+          <div className="backup-preview">
+            <div className="session-summary">
+              <span>Imported v{backupPreview.version}</span>
+              <span>{backupPreview.exportedAt ? new Date(backupPreview.exportedAt).toLocaleString() : "No timestamp"}</span>
+              <span>{backupPreview.conflicts.length} conflicts</span>
+              <span>{backupPreview.changes.length} changes</span>
+            </div>
+            <div className="backup-preview-grid">
+              <div>
+                <strong>Will change</strong>
+                {backupPreview.changes.length > 0 ? (
+                  <ul>
+                    {backupPreview.changes.map((change) => (
+                      <li key={change}>{change}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No field-level changes detected.</p>
+                )}
+              </div>
+              <div>
+                <strong>Potential conflicts</strong>
+                {backupPreview.conflicts.length > 0 ? (
+                  <ul>
+                    {backupPreview.conflicts.map((conflict) => (
+                      <li key={conflict}>{conflict}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No conflicts detected against the current local state.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         <div className="hero-actions">
           <button type="button" className="button button-primary" onClick={handleExport}>
             <Sparkles size={16} />
@@ -212,7 +267,11 @@ export function SettingsPage() {
           <textarea
             className="backup-textarea"
             value={backupText}
-            onChange={(event) => setBackupText(event.target.value)}
+            onChange={(event) => {
+              const nextText = event.target.value;
+              setBackupText(nextText);
+              refreshBackupPreview(nextText);
+            }}
             placeholder="Paste a Brain Curls backup here"
             rows={8}
           />
