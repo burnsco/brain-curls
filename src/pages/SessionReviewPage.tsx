@@ -171,7 +171,7 @@ export function SessionReviewPage() {
         <p className="panel-label">Next-step coaching</p>
         <div className="telemetry-domain-list">
           {lastWorkoutCoaching.length > 0 ? (
-            lastWorkoutCoaching.map((note) => (
+            lastWorkoutCoaching.slice(0, 3).map((note) => (
               <div key={note.slug} className="telemetry-domain-card">
                 <div className="telemetry-domain-topline">
                   <strong>{note.name}</strong>
@@ -188,7 +188,7 @@ export function SessionReviewPage() {
       <Card className="progress-card recap-card">
         <p className="panel-label">Retry drills</p>
         <div className="drill-retry-grid">
-          {lastWorkoutReview.sessionRuns.map((run) => {
+          {lastWorkoutReview.sessionRuns.slice(0, 4).map((run) => {
             const game = getGameBySlug(run.slug);
             const retryLabel = getRetryLabel(run.accuracy);
             return (

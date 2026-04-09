@@ -12,6 +12,7 @@ export function DashboardPage() {
   const recent = progress.recentRuns;
   const [gameSort, setGameSort] = useState<"recent" | "score" | "accuracy">("recent");
   const [onlyUnlocked, setOnlyUnlocked] = useState(false);
+  const [detailView, setDetailView] = useState<"signals" | "charts" | "history">("signals");
   const domainTelemetry = buildDomainTelemetry(progress);
   const gameTelemetry = buildGameTelemetry(progress);
   const unlockTelemetry = buildUnlockTelemetry(progress);
@@ -66,22 +67,54 @@ export function DashboardPage() {
         </Card>
       </div>
 
-      <DifficultyTelemetry
-        domains={domainTelemetry}
-        games={sortedGameTelemetry}
-        unlocks={unlockTelemetry}
-        overallLevel={overall.level}
-        targetAccuracy={overall.targetAccuracy}
-        speedBudgetMs={overall.speedBudgetMs}
-        gameSort={gameSort}
-        onGameSortChange={setGameSort}
-        onlyUnlocked={onlyUnlocked}
-        onOnlyUnlockedChange={setOnlyUnlocked}
-      />
+      <div className="section-toolbar">
+        <div className="section-toolbar-copy">
+          <p className="panel-label">Dashboard view</p>
+          <p>Switch between the live signals, charts, and history panels without extending the page vertically.</p>
+        </div>
+        <div className="section-toolbar-actions">
+          <button
+            type="button"
+            className={`telemetry-chip ${detailView === "signals" ? "telemetry-chip-active" : ""}`}
+            onClick={() => setDetailView("signals")}
+          >
+            Signals
+          </button>
+          <button
+            type="button"
+            className={`telemetry-chip ${detailView === "charts" ? "telemetry-chip-active" : ""}`}
+            onClick={() => setDetailView("charts")}
+          >
+            Charts
+          </button>
+          <button
+            type="button"
+            className={`telemetry-chip ${detailView === "history" ? "telemetry-chip-active" : ""}`}
+            onClick={() => setDetailView("history")}
+          >
+            History
+          </button>
+        </div>
+      </div>
 
-      <ProgressCharts progress={progress} />
+      {detailView === "signals" && (
+        <DifficultyTelemetry
+          domains={domainTelemetry}
+          games={sortedGameTelemetry}
+          unlocks={unlockTelemetry}
+          overallLevel={overall.level}
+          targetAccuracy={overall.targetAccuracy}
+          speedBudgetMs={overall.speedBudgetMs}
+          gameSort={gameSort}
+          onGameSortChange={setGameSort}
+          onlyUnlocked={onlyUnlocked}
+          onOnlyUnlockedChange={setOnlyUnlocked}
+        />
+      )}
 
-      <ProgressHistory progress={progress} />
+      {detailView === "charts" && <ProgressCharts progress={progress} />}
+
+      {detailView === "history" && <ProgressHistory progress={progress} />}
 
       <Card className="progress-card">
         <p className="panel-label">Recent runs</p>
@@ -89,7 +122,7 @@ export function DashboardPage() {
           {recent.length === 0 ? (
             <p className="empty-state">No runs yet. Start a workout to populate the dashboard.</p>
           ) : (
-            recent.map((run) => (
+            recent.slice(0, 4).map((run) => (
               <div key={`${run.slug}-${run.completedAt}`}>
                 <strong>{run.name}</strong>
                 <span>

@@ -89,7 +89,10 @@ export function GridMemoryGame({ level, onComplete }: GridMemoryGameProps) {
         <span>Grid {config.gridSize}×{config.gridSize}</span>
         <span>Length {pattern.length}</span>
       </div>
-      <div className="grid-memory-board">
+      <div
+        className="grid-memory-board"
+        style={{ gridTemplateColumns: `repeat(${config.gridSize}, minmax(0, 1fr))` }}
+      >
         {Array.from({ length: config.gridSize * config.gridSize }, (_, index) => {
           const isLit = phase === "show" && pattern.includes(index);
           const isSelected = selection.includes(index);

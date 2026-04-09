@@ -59,6 +59,7 @@ export function SettingsPage() {
   const [backupMessage, setBackupMessage] = useState("Export a backup or paste one here to restore your state.");
   const [backupMeta, setBackupMeta] = useState<{ version: number; exportedAt: string } | null>(null);
   const [backupPreview, setBackupPreview] = useState<BackupPreview | null>(null);
+  const [detailView, setDetailView] = useState<"preferences" | "backup" | "summary">("preferences");
 
   const refreshBackupPreview = (text: string) => {
     if (!text.trim()) {
@@ -148,195 +149,233 @@ export function SettingsPage() {
         description="These preferences are saved locally and feed the workout builder, feedback cues, and motion behavior."
       />
 
-      <div className="progress-layout">
-        <Card className="progress-card">
-          <p className="panel-label">Feedback</p>
-          <div className="settings-grid">
-            <ToggleCard
-              active={settings.audioEnabled}
-              title="Audio cues"
-              description="Plays completion and navigation sounds."
-              icon={AudioLines}
-              onClick={() => setAudioEnabled(!settings.audioEnabled)}
-            />
-            <ToggleCard
-              active={settings.hapticsEnabled}
-              title="Haptics"
-              description="Uses vibration feedback when available."
-              icon={BellRing}
-              onClick={() => setHapticsEnabled(!settings.hapticsEnabled)}
-            />
-            <ToggleCard
-              active={settings.reducedMotion}
-              title="Reduced motion"
-              description="Minimizes animation intensity across the app."
-              icon={MoonStar}
-              onClick={() => setReducedMotionEnabled(!settings.reducedMotion)}
-            />
-          </div>
-        </Card>
-
-        <Card className="progress-card">
-          <p className="panel-label">Session defaults</p>
-          <div className="session-summary">
-            <span>{getModeLabel(settings.dailySessionMode)}</span>
-            <span>{getLengthLabel(settings.dailySessionMinutes)}</span>
-          </div>
-          <div className="mode-grid">
-            {sessionModes.map(({ mode, title }) => (
-              <button
-                key={mode}
-                type="button"
-                className={`mode-card ${settings.dailySessionMode === mode ? "mode-card-active" : ""}`}
-                onClick={() => setDailySessionPreferences(mode, settings.dailySessionMinutes)}
-              >
-                <BrainCircuit size={18} />
-                <strong>{title}</strong>
-                <span>Selected for daily workouts</span>
-              </button>
-            ))}
-          </div>
-          <div className="length-grid">
-            {sessionLengths.map((minutes) => (
-              <button
-                key={minutes}
-                type="button"
-                className={`length-card ${settings.dailySessionMinutes === minutes ? "length-card-active" : ""}`}
-                onClick={() => setDailySessionPreferences(settings.dailySessionMode, minutes)}
-              >
-                <Clock3 size={18} />
-                <strong>{getLengthLabel(minutes)}</strong>
-                <span>{minutes === 6 ? "Quick set" : minutes === 8 ? "Standard set" : "Long focus set"}</span>
-              </button>
-            ))}
-          </div>
-        </Card>
-      </div>
-
-      <Card className="progress-card">
-        <p className="panel-label">Backup and reset</p>
-        <p className="game-mechanic">{backupMessage}</p>
-        {backupMeta && (
-          <div className="session-summary">
-            <span>Version {backupMeta.version}</span>
-            <span>{backupMeta.exportedAt === "legacy" ? "Legacy backup" : new Date(backupMeta.exportedAt).toLocaleString()}</span>
-          </div>
-        )}
-        {backupPreview && (
-          <div className="backup-preview">
-            <div className="session-summary">
-              <span>Imported v{backupPreview.version}</span>
-              <span>{backupPreview.exportedAt ? new Date(backupPreview.exportedAt).toLocaleString() : "No timestamp"}</span>
-              <span>{backupPreview.conflicts.length} conflicts</span>
-              <span>{backupPreview.changes.length} changes</span>
-            </div>
-            <div className="backup-preview-grid">
-              <div>
-                <strong>Will change</strong>
-                {backupPreview.changes.length > 0 ? (
-                  <ul>
-                    {backupPreview.changes.map((change) => (
-                      <li key={change}>{change}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No field-level changes detected.</p>
-                )}
-              </div>
-              <div>
-                <strong>Potential conflicts</strong>
-                {backupPreview.conflicts.length > 0 ? (
-                  <ul>
-                    {backupPreview.conflicts.map((conflict) => (
-                      <li key={conflict}>{conflict}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No conflicts detected against the current local state.</p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-        <div className="hero-actions">
-          <button type="button" className="button button-primary" onClick={handleExport}>
-            <Sparkles size={16} />
-            Export backup
-          </button>
-          <button type="button" className="button button-secondary" onClick={handleImport} disabled={!backupText}>
-            Restore backup
+      <div className="section-toolbar">
+        <div className="section-toolbar-copy">
+          <p className="panel-label">Settings view</p>
+          <p>Keep the page in a single viewport by switching between preferences, backup tools, and summary details.</p>
+        </div>
+        <div className="section-toolbar-actions">
+          <button
+            type="button"
+            className={`telemetry-chip ${detailView === "preferences" ? "telemetry-chip-active" : ""}`}
+            onClick={() => setDetailView("preferences")}
+          >
+            Preferences
           </button>
           <button
             type="button"
-            className="button button-secondary"
-            onClick={() => {
-              resetAllData();
-              setBackupText("");
-              setBackupMessage("All progress and settings were reset to defaults.");
-            }}
+            className={`telemetry-chip ${detailView === "backup" ? "telemetry-chip-active" : ""}`}
+            onClick={() => setDetailView("backup")}
           >
-            Reset all data
+            Backup
+          </button>
+          <button
+            type="button"
+            className={`telemetry-chip ${detailView === "summary" ? "telemetry-chip-active" : ""}`}
+            onClick={() => setDetailView("summary")}
+          >
+            Summary
           </button>
         </div>
-        <label className="backup-upload">
-          <span>Paste JSON backup or load a file</span>
-          <input type="file" accept="application/json,.json" onChange={handleFileChange} />
-          <textarea
-            className="backup-textarea"
-            value={backupText}
-            onChange={(event) => {
-              const nextText = event.target.value;
-              setBackupText(nextText);
-              refreshBackupPreview(nextText);
-            }}
-            placeholder="Paste a Brain Curls backup here"
-            rows={8}
-          />
-        </label>
-      </Card>
+      </div>
 
-      <Card className="progress-card">
-        <p className="panel-label">Backup history</p>
-        <div className="backup-history-list">
-          {backupHistory.length === 0 ? (
-            <p className="empty-state">No backup activity recorded yet.</p>
-          ) : (
-            backupHistory.map((entry) => (
-              <div key={`${entry.kind}-${entry.timestamp}`} className="backup-history-item">
-                <div>
-                  <strong>{entry.kind}</strong>
-                  <span>{entry.note}</span>
-                </div>
-                <small>
-                  v{entry.version} · {new Date(entry.timestamp).toLocaleString()}
-                </small>
-              </div>
-            ))
+      {detailView === "preferences" && (
+        <div className="progress-layout">
+          <Card className="progress-card">
+            <p className="panel-label">Feedback</p>
+            <div className="settings-grid">
+              <ToggleCard
+                active={settings.audioEnabled}
+                title="Audio cues"
+                description="Plays completion and navigation sounds."
+                icon={AudioLines}
+                onClick={() => setAudioEnabled(!settings.audioEnabled)}
+              />
+              <ToggleCard
+                active={settings.hapticsEnabled}
+                title="Haptics"
+                description="Uses vibration feedback when available."
+                icon={BellRing}
+                onClick={() => setHapticsEnabled(!settings.hapticsEnabled)}
+              />
+              <ToggleCard
+                active={settings.reducedMotion}
+                title="Reduced motion"
+                description="Minimizes animation intensity across the app."
+                icon={MoonStar}
+                onClick={() => setReducedMotionEnabled(!settings.reducedMotion)}
+              />
+            </div>
+          </Card>
+
+          <Card className="progress-card">
+            <p className="panel-label">Session defaults</p>
+            <div className="session-summary">
+              <span>{getModeLabel(settings.dailySessionMode)}</span>
+              <span>{getLengthLabel(settings.dailySessionMinutes)}</span>
+            </div>
+            <div className="mode-grid">
+              {sessionModes.map(({ mode, title }) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={`mode-card ${settings.dailySessionMode === mode ? "mode-card-active" : ""}`}
+                  onClick={() => setDailySessionPreferences(mode, settings.dailySessionMinutes)}
+                >
+                  <BrainCircuit size={18} />
+                  <strong>{title}</strong>
+                  <span>Selected for daily workouts</span>
+                </button>
+              ))}
+            </div>
+            <div className="length-grid">
+              {sessionLengths.map((minutes) => (
+                <button
+                  key={minutes}
+                  type="button"
+                  className={`length-card ${settings.dailySessionMinutes === minutes ? "length-card-active" : ""}`}
+                  onClick={() => setDailySessionPreferences(settings.dailySessionMode, minutes)}
+                >
+                  <Clock3 size={18} />
+                  <strong>{getLengthLabel(minutes)}</strong>
+                  <span>{minutes === 6 ? "Quick set" : minutes === 8 ? "Standard set" : "Long focus set"}</span>
+                </button>
+              ))}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {detailView === "backup" && (
+        <Card className="progress-card">
+          <p className="panel-label">Backup and reset</p>
+          <p className="game-mechanic">{backupMessage}</p>
+          {backupMeta && (
+            <div className="session-summary">
+              <span>Version {backupMeta.version}</span>
+              <span>{backupMeta.exportedAt === "legacy" ? "Legacy backup" : new Date(backupMeta.exportedAt).toLocaleString()}</span>
+            </div>
           )}
-        </div>
-      </Card>
+          {backupPreview && (
+            <div className="backup-preview">
+              <div className="session-summary">
+                <span>Imported v{backupPreview.version}</span>
+                <span>{backupPreview.exportedAt ? new Date(backupPreview.exportedAt).toLocaleString() : "No timestamp"}</span>
+                <span>{backupPreview.conflicts.length} conflicts</span>
+                <span>{backupPreview.changes.length} changes</span>
+              </div>
+              <div className="backup-preview-grid">
+                <div>
+                  <strong>Will change</strong>
+                  {backupPreview.changes.length > 0 ? (
+                    <ul>
+                      {backupPreview.changes.map((change) => (
+                        <li key={change}>{change}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No field-level changes detected.</p>
+                  )}
+                </div>
+                <div>
+                  <strong>Potential conflicts</strong>
+                  {backupPreview.conflicts.length > 0 ? (
+                    <ul>
+                      {backupPreview.conflicts.map((conflict) => (
+                        <li key={conflict}>{conflict}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No conflicts detected against the current local state.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="hero-actions">
+            <button type="button" className="button button-primary" onClick={handleExport}>
+              <Sparkles size={16} />
+              Export backup
+            </button>
+            <button type="button" className="button button-secondary" onClick={handleImport} disabled={!backupText}>
+              Restore backup
+            </button>
+            <button
+              type="button"
+              className="button button-secondary"
+              onClick={() => {
+                resetAllData();
+                setBackupText("");
+                setBackupMessage("All progress and settings were reset to defaults.");
+              }}
+            >
+              Reset all data
+            </button>
+          </div>
+          <label className="backup-upload">
+            <span>Paste JSON backup or load a file</span>
+            <input type="file" accept="application/json,.json" onChange={handleFileChange} />
+            <textarea
+              className="backup-textarea"
+              value={backupText}
+              onChange={(event) => {
+                const nextText = event.target.value;
+                setBackupText(nextText);
+                refreshBackupPreview(nextText);
+              }}
+              placeholder="Paste a Brain Curls backup here"
+              rows={8}
+            />
+          </label>
+        </Card>
+      )}
 
-      <Card className="hero-panel">
-        <p className="panel-label">Summary</p>
-        <h3>
-          {progress.onboardingComplete ? "Training profile saved" : "Profile ready to save"}
-        </h3>
-        <p className="game-mechanic">
-          Audio, haptics, motion, and session preferences all update the same persisted profile, so the next workout launches with the same setup.
-        </p>
-        <div className="session-summary">
-          <span>{settings.audioEnabled ? "Audio on" : "Audio off"}</span>
-          <span>{settings.hapticsEnabled ? "Haptics on" : "Haptics off"}</span>
-          <span>{settings.reducedMotion ? "Reduced motion on" : "Reduced motion off"}</span>
-          <span>{getLengthLabel(settings.dailySessionMinutes)}</span>
-        </div>
-        <div className="hero-actions">
-          <button type="button" className="button button-primary" onClick={() => setReducedMotionEnabled(!settings.reducedMotion)}>
-            <Sparkles size={16} />
-            {settings.reducedMotion ? "Restore motion" : "Reduce motion"}
-          </button>
-        </div>
-      </Card>
+      {detailView === "summary" && (
+        <>
+          <Card className="progress-card">
+            <p className="panel-label">Backup history</p>
+            <div className="backup-history-list">
+              {backupHistory.length === 0 ? (
+                <p className="empty-state">No backup activity recorded yet.</p>
+              ) : (
+                backupHistory.slice(0, 4).map((entry) => (
+                  <div key={`${entry.kind}-${entry.timestamp}`} className="backup-history-item">
+                    <div>
+                      <strong>{entry.kind}</strong>
+                      <span>{entry.note}</span>
+                    </div>
+                    <small>
+                      v{entry.version} · {new Date(entry.timestamp).toLocaleString()}
+                    </small>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
+
+          <Card className="hero-panel">
+            <p className="panel-label">Summary</p>
+            <h3>
+              {progress.onboardingComplete ? "Training profile saved" : "Profile ready to save"}
+            </h3>
+            <p className="game-mechanic">
+              Audio, haptics, motion, and session preferences all update the same persisted profile, so the next workout launches with the same setup.
+            </p>
+            <div className="session-summary">
+              <span>{settings.audioEnabled ? "Audio on" : "Audio off"}</span>
+              <span>{settings.hapticsEnabled ? "Haptics on" : "Haptics off"}</span>
+              <span>{settings.reducedMotion ? "Reduced motion on" : "Reduced motion off"}</span>
+              <span>{getLengthLabel(settings.dailySessionMinutes)}</span>
+            </div>
+            <div className="hero-actions">
+              <button type="button" className="button button-primary" onClick={() => setReducedMotionEnabled(!settings.reducedMotion)}>
+                <Sparkles size={16} />
+                {settings.reducedMotion ? "Restore motion" : "Reduce motion"}
+              </button>
+            </div>
+          </Card>
+        </>
+      )}
     </main>
   );
 }
