@@ -507,6 +507,113 @@ main {
   gap: 16px;
 }
 
+.walkthrough-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.85fr) minmax(0, 1.15fr);
+  gap: 16px;
+}
+
+.walkthrough-rail,
+.walkthrough-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.walkthrough-steps {
+  display: grid;
+  gap: 10px;
+}
+
+.walkthrough-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+
+.walkthrough-step span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
+.walkthrough-step strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.walkthrough-step p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+  font-size: 0.88rem;
+}
+
+.walkthrough-step-active {
+  border-color: rgba(103, 232, 249, 0.4);
+  background: rgba(103, 232, 249, 0.08);
+}
+
+.walkthrough-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.walkthrough-points span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.walkthrough-preview {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.settings-toggle {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font: inherit;
+}
+
+.settings-toggle span {
+  color: var(--muted);
+  line-height: 1.45;
+  font-size: 0.88rem;
+}
+
+.settings-toggle-active {
+  border-color: rgba(103, 232, 249, 0.42);
+  background: rgba(103, 232, 249, 0.08);
+}
+
 .dashboard-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1149,7 +1256,8 @@ main {
   .progress-layout,
   .roadmap-list,
   .chart-grid,
-  .history-grid {
+  .history-grid,
+  .walkthrough-layout {
     grid-template-columns: 1fr;
   }
 
@@ -1211,4 +1319,16 @@ main {
   body::before {
     animation: none;
   }
+}
+
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+html[data-motion="reduced"] body::before {
+  animation: none;
 }
