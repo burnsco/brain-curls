@@ -5,14 +5,30 @@ import { ProgressCharts } from "../components/progress-charts";
 import { ProgressHistory } from "../components/progress-history";
 import { buildDomainTelemetry, buildGameTelemetry, buildOverallDifficultyTelemetry, buildUnlockTelemetry } from "../lib/telemetry";
 import { useBrainCurlsState } from "../store/brain-curls-store";
+import { useState } from "react";
 
 export function DashboardPage() {
   const { progress } = useBrainCurlsState();
   const recent = progress.recentRuns;
+  const [gameSort, setGameSort] = useState<"recent" | "score" | "accuracy">("recent");
+  const [onlyUnlocked, setOnlyUnlocked] = useState(false);
   const domainTelemetry = buildDomainTelemetry(progress);
   const gameTelemetry = buildGameTelemetry(progress);
   const unlockTelemetry = buildUnlockTelemetry(progress);
   const overall = buildOverallDifficultyTelemetry(progress);
+  const sortedGameTelemetry = gameTelemetry
+    .filter((game) => !onlyUnlocked || progress.unlockedGameSlugs.includes(game.slug))
+    .sort((left, right) => {
+      switch (gameSort) {
+        case "score":
+          return right.bestScore - left.bestScore;
+        case "accuracy":
+          return right.averageAccuracy - left.averageAccuracy;
+        case "recent":
+        default:
+          return (right.lastPlayedAt ?? 0) - (left.lastPlayedAt ?? 0);
+      }
+    });
 
   return (
     <main className="section-page">
@@ -52,11 +68,15 @@ export function DashboardPage() {
 
       <DifficultyTelemetry
         domains={domainTelemetry}
-        games={gameTelemetry}
+        games={sortedGameTelemetry}
         unlocks={unlockTelemetry}
         overallLevel={overall.level}
         targetAccuracy={overall.targetAccuracy}
         speedBudgetMs={overall.speedBudgetMs}
+        gameSort={gameSort}
+        onGameSortChange={setGameSort}
+        onlyUnlocked={onlyUnlocked}
+        onOnlyUnlockedChange={setOnlyUnlocked}
       />
 
       <ProgressCharts progress={progress} />

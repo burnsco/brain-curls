@@ -1028,6 +1028,26 @@ main {
   grid-column: 1 / -1;
 }
 
+.telemetry-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.telemetry-chip {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font: inherit;
+}
+
+.telemetry-chip-active {
+  color: #04101e;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+}
+
 .telemetry-note-grid {
   display: grid;
   gap: 12px;

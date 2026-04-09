@@ -8,6 +8,10 @@ interface DifficultyTelemetryProps {
   overallLevel: number;
   targetAccuracy: number;
   speedBudgetMs: number;
+  gameSort: "recent" | "score" | "accuracy";
+  onGameSortChange: (sort: "recent" | "score" | "accuracy") => void;
+  onlyUnlocked: boolean;
+  onOnlyUnlockedChange: (value: boolean) => void;
 }
 
 export function DifficultyTelemetry({
@@ -17,6 +21,10 @@ export function DifficultyTelemetry({
   overallLevel,
   targetAccuracy,
   speedBudgetMs,
+  gameSort,
+  onGameSortChange,
+  onlyUnlocked,
+  onOnlyUnlockedChange,
 }: DifficultyTelemetryProps) {
   return (
     <div className="progress-layout telemetry-layout">
@@ -69,6 +77,24 @@ export function DifficultyTelemetry({
 
       <Card className="progress-card telemetry-card telemetry-wide">
         <p className="panel-label">Game detail</p>
+        <div className="telemetry-controls">
+          <button type="button" className={`telemetry-chip ${gameSort === "recent" ? "telemetry-chip-active" : ""}`} onClick={() => onGameSortChange("recent")}>
+            Recent
+          </button>
+          <button type="button" className={`telemetry-chip ${gameSort === "score" ? "telemetry-chip-active" : ""}`} onClick={() => onGameSortChange("score")}>
+            Best score
+          </button>
+          <button type="button" className={`telemetry-chip ${gameSort === "accuracy" ? "telemetry-chip-active" : ""}`} onClick={() => onGameSortChange("accuracy")}>
+            Accuracy
+          </button>
+          <button
+            type="button"
+            className={`telemetry-chip ${onlyUnlocked ? "telemetry-chip-active" : ""}`}
+            onClick={() => onOnlyUnlockedChange(!onlyUnlocked)}
+          >
+            Unlocked only
+          </button>
+        </div>
         <div className="telemetry-domain-list">
           {games.map((game) => (
             <div key={game.slug} className="telemetry-domain-card">
