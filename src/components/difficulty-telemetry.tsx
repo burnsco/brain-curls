@@ -26,6 +26,10 @@ export function DifficultyTelemetry({
   onlyUnlocked,
   onOnlyUnlockedChange,
 }: DifficultyTelemetryProps) {
+  const gameSample = games.slice(0, 6);
+  const maxScore = Math.max(...gameSample.map((game) => game.bestScore), 1);
+  const maxAccuracy = Math.max(...gameSample.map((game) => game.averageAccuracy), 0.1);
+
   return (
     <div className="progress-layout telemetry-layout">
       <Card className="progress-card telemetry-card">
@@ -129,6 +133,44 @@ export function DifficultyTelemetry({
               </div>
             </div>
           ))}
+        </div>
+      </Card>
+
+      <Card className="progress-card telemetry-card telemetry-wide">
+        <p className="panel-label">Game charts</p>
+        <div className="telemetry-chart-grid">
+          <div>
+            <strong>Best scores</strong>
+            <div className="telemetry-bar-grid">
+              {gameSample.map((game) => (
+                <div key={`${game.slug}-score`} className="telemetry-bar-column">
+                  <div className="telemetry-bar-track">
+                    <div className="telemetry-bar-fill" style={{ height: `${Math.max(10, Math.round((game.bestScore / maxScore) * 100))}%` }} />
+                  </div>
+                  <span>{game.name}</span>
+                  <small>{game.bestScore}</small>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <strong>Average accuracy</strong>
+            <div className="telemetry-bar-grid">
+              {gameSample.map((game) => (
+                <div key={`${game.slug}-accuracy`} className="telemetry-bar-column">
+                  <div className="telemetry-bar-track">
+                    <div
+                      className="telemetry-bar-fill telemetry-bar-fill-accuracy"
+                      style={{ height: `${Math.max(10, Math.round((game.averageAccuracy / maxAccuracy) * 100))}%` }}
+                    />
+                  </div>
+                  <span>{game.name}</span>
+                  <small>{Math.round(game.averageAccuracy * 100)}%</small>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </Card>
     </div>
