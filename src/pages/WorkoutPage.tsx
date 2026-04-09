@@ -2,13 +2,20 @@ import { ArrowRight, RotateCcw, Sparkles } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card } from "../components/card";
 import { SectionHeading } from "../components/section-heading";
-import { getDefaultWorkoutSlugs, getNextWorkoutSlug, getGameBySlug } from "../lib/workouts";
-import { resetWorkout, startWorkout, useBrainCurlsState } from "../store/brain-curls-store";
+import { getNextWorkoutSlug, getGameBySlug } from "../lib/workouts";
+import { buildDailyWorkoutQueue, getLengthLabel, getModeLabel, type DailySessionLength, type DailySessionMode } from "../lib/session-builder";
+import { resetWorkout, setDailySessionPreferences, startWorkout, useBrainCurlsState } from "../store/brain-curls-store";
 
 export function WorkoutPage() {
   const navigate = useNavigate();
   const { session, progress } = useBrainCurlsState();
-  const queuedSlugs = session?.gameSlugs ?? getDefaultWorkoutSlugs(progress.unlockedGameSlugs);
+  const queuedSlugs =
+    session?.gameSlugs ??
+    buildDailyWorkoutQueue(
+      progress.unlockedGameSlugs,
+      progress.dailySessionMode,
+      progress.dailySessionMinutes,
+    );
   const lastCompleted = session?.completedSlugs.at(-1) ?? "";
   const nextSlug = session ? getNextWorkoutSlug(lastCompleted, queuedSlugs) : queuedSlugs[0];
   const queuedGames = queuedSlugs.map((slug) => getGameBySlug(slug)).filter(Boolean);
@@ -29,6 +36,10 @@ export function WorkoutPage() {
           <p className="game-mechanic">
             Unlocks shape the queue. New games are added when progression milestones are reached.
           </p>
+          <div className="session-summary">
+            <span>{getModeLabel(progress.dailySessionMode)}</span>
+            <span>{getLengthLabel(progress.dailySessionMinutes)}</span>
+          </div>
           <div className="workout-list">
             {queuedGames.map((game) => (
               <div key={game?.slug}>
@@ -79,6 +90,38 @@ export function WorkoutPage() {
           </Link>
         </Card>
       </div>
+
+      <Card className="progress-card">
+        <p className="panel-label">Daily session selection</p>
+        <div className="preset-grid">
+          {[
+            { mode: "balanced", label: "Balanced", minutes: 6 },
+            { mode: "memory", label: "Memory", minutes: 8 },
+            { mode: "attention", label: "Attention", minutes: 8 },
+            { mode: "speed", label: "Speed", minutes: 6 },
+            { mode: "reasoning", label: "Reasoning", minutes: 10 },
+          ].map((preset) => (
+            <button
+              key={`${preset.mode}-${preset.minutes}`}
+              type="button"
+              className={`preset-card ${
+                progress.dailySessionMode === preset.mode && progress.dailySessionMinutes === preset.minutes
+                  ? "preset-card-active"
+                  : ""
+              }`}
+              onClick={() =>
+                setDailySessionPreferences(
+                  preset.mode as DailySessionMode,
+                  preset.minutes as DailySessionLength,
+                )
+              }
+            >
+              <strong>{preset.label}</strong>
+              <span>{preset.minutes} min</span>
+            </button>
+          ))}
+        </div>
+      </Card>
     </main>
   );
 }

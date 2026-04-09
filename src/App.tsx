@@ -5,6 +5,7 @@ import { GamesPage } from "./pages/GamesPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { WorkoutPage } from "./pages/WorkoutPage";
 import { GamePage } from "./pages/GamePage";
+import { OnboardingPage } from "./pages/OnboardingPage";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/games/:slug" element={<GamePage />} />
         <Route path="/workout" element={<WorkoutPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/welcome" element={<OnboardingPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Shell>

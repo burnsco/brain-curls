@@ -3,6 +3,7 @@ import { pillars } from "../data/pillars";
 import type { CognitiveDomain, TrainingGame } from "../types";
 import { levelFromRecentRuns, scoreRun } from "../lib/scoring";
 import { getEarnedBadges, getUnlockedGameSlugs, getNextUnlock } from "../lib/progression";
+import type { DailySessionLength, DailySessionMode } from "../lib/session-builder";
 
 export interface GameRunRecord {
   slug: string;
@@ -36,6 +37,9 @@ export interface ProgressState {
   unlockedGameSlugs: string[];
   earnedBadges: string[];
   nextUnlock: { label: string; remainingRuns: number } | null;
+  onboardingComplete: boolean;
+  dailySessionMode: DailySessionMode;
+  dailySessionMinutes: DailySessionLength;
 }
 
 export interface SessionState {
@@ -82,6 +86,9 @@ const defaultProgress = (): ProgressState => ({
   unlockedGameSlugs: [],
   earnedBadges: [],
   nextUnlock: null,
+  onboardingComplete: false,
+  dailySessionMode: "balanced",
+  dailySessionMinutes: 6,
 });
 
 const defaultState = (): BrainCurlsState => ({
@@ -178,6 +185,27 @@ export function startWorkout(gameSlugs: string[]) {
   }));
 }
 
+export function completeOnboarding() {
+  updateState((current) => ({
+    ...current,
+    progress: {
+      ...current.progress,
+      onboardingComplete: true,
+    },
+  }));
+}
+
+export function setDailySessionPreferences(mode: DailySessionMode, minutes: DailySessionLength) {
+  updateState((current) => ({
+    ...current,
+    progress: {
+      ...current.progress,
+      dailySessionMode: mode,
+      dailySessionMinutes: minutes,
+    },
+  }));
+}
+
 export function completeGameRun(game: TrainingGame, metrics: { accuracy: number; reactionMs: number }) {
   const current = state;
   const score = scoreRun({
@@ -227,6 +255,9 @@ export function completeGameRun(game: TrainingGame, metrics: { accuracy: number;
       unlockedGameSlugs: currentState.progress.unlockedGameSlugs,
       earnedBadges: currentState.progress.earnedBadges,
       nextUnlock: currentState.progress.nextUnlock,
+      onboardingComplete: currentState.progress.onboardingComplete,
+      dailySessionMode: currentState.progress.dailySessionMode,
+      dailySessionMinutes: currentState.progress.dailySessionMinutes,
     };
 
     return {

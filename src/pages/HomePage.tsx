@@ -33,6 +33,7 @@ const trainingSignals = [
 
 export function HomePage() {
   const { progress } = useBrainCurlsState();
+  const startRoute = progress.onboardingComplete ? "/workout" : "/welcome";
   const difficultySnapshot = estimateNextDifficulty({
     accuracy: Math.max(0.6, Math.min(0.96, progress.totalRuns ? progress.totalScore / (progress.totalRuns * 1200) : 0.78)),
     reactionMs: progress.recentRuns[0]?.reactionMs ?? 620,
@@ -51,7 +52,7 @@ export function HomePage() {
           </p>
 
           <div className="hero-actions">
-            <Link className="button button-primary" to="/workout">
+            <Link className="button button-primary" to={startRoute}>
               Start today&apos;s workout
               <ArrowRight size={16} />
             </Link>

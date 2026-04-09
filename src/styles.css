@@ -919,6 +919,68 @@ main {
   font-size: 0.88rem;
 }
 
+.session-summary,
+.preset-grid,
+.mode-grid,
+.length-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.session-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 12px 0 0;
+}
+
+.session-summary span {
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+}
+
+.preset-grid,
+.mode-grid,
+.length-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.preset-card,
+.mode-card,
+.length-card {
+  text-align: left;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  display: grid;
+  gap: 8px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.preset-card strong,
+.mode-card strong,
+.length-card strong {
+  font-size: 1rem;
+}
+
+.preset-card span,
+.mode-card span,
+.length-card span {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.preset-card-active,
+.mode-card-active,
+.length-card-active {
+  border-color: rgba(103, 232, 249, 0.5);
+  background: rgba(103, 232, 249, 0.1);
+}
+
 .roadmap-list {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
