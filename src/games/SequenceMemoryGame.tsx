@@ -26,6 +26,7 @@ export function SequenceMemoryGame({ level, onComplete }: SequenceMemoryGameProp
   const [phase, setPhase] = useState<"show" | "input" | "complete">("show");
   const [recallMode, setRecallMode] = useState<"forward" | "backward" | "index">("forward");
   const [index, setIndex] = useState(0);
+  const [focusIndex, setFocusIndex] = useState(0);
   const [choices, setChoices] = useState<string[]>([]);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [status, setStatus] = useState("Watch the sequence, then replay it from memory.");
@@ -36,12 +37,14 @@ export function SequenceMemoryGame({ level, onComplete }: SequenceMemoryGameProp
       setStartedAt(Date.now());
       const mode = config.requireReverseRecall ? (Math.random() > 0.5 ? "backward" : "forward") : "forward";
       const nextMode = config.askForIndexRecall && Math.random() > 0.55 ? "index" : mode;
+      const nextFocusIndex = Math.max(0, Math.min(sequenceLength - 1, Math.floor(sequenceLength / 2)));
       setRecallMode(nextMode);
+      setFocusIndex(nextFocusIndex);
       setStatus(
         nextMode === "backward"
           ? "Recreate the pattern in reverse."
           : nextMode === "index"
-            ? "Tap the item that matches the prompt."
+            ? `Tap the ${nextFocusIndex + 1}${nextFocusIndex + 1 === 1 ? "st" : nextFocusIndex + 1 === 2 ? "nd" : nextFocusIndex + 1 === 3 ? "rd" : "th"} item.`
             : "Recreate the pattern in the same order.",
       );
     }, config.revealMs);
@@ -70,9 +73,9 @@ export function SequenceMemoryGame({ level, onComplete }: SequenceMemoryGameProp
     if (phase !== "input") return;
 
     const next = [...choices, color];
-    const expectedSequence =
-      recallMode === "backward" ? [...sequence].reverse() : sequence;
-    const expected = expectedSequence[choices.length]?.name;
+    const expectedSequence = recallMode === "backward" ? [...sequence].reverse() : sequence;
+    const expected =
+      recallMode === "index" ? sequence[focusIndex]?.name : expectedSequence[choices.length]?.name;
     setChoices(next);
 
     if (color !== expected) {
@@ -85,12 +88,12 @@ export function SequenceMemoryGame({ level, onComplete }: SequenceMemoryGameProp
       return;
     }
 
-    if (next.length === sequence.length) {
+    if (recallMode === "index" || next.length === sequence.length) {
       const reactionMs = Math.max(350, Date.now() - (startedAt ?? Date.now()));
       setPhase("complete");
       setStatus("Sequence complete.");
       onComplete({
-        accuracy: 1,
+        accuracy: recallMode === "index" ? 1 : 1,
         reactionMs,
       });
     }
@@ -102,7 +105,7 @@ export function SequenceMemoryGame({ level, onComplete }: SequenceMemoryGameProp
       <div className="game-meta-row">
         <span>Tier {config.tier}</span>
         <span>Mode {recallMode}</span>
-        <span>Length {sequence.length}</span>
+        <span>{recallMode === "index" ? `Focus ${focusIndex + 1}` : `Length ${sequence.length}`}</span>
       </div>
       <div className="sequence-grid" aria-label="Sequence memory palette">
         {palette.map((color) => {

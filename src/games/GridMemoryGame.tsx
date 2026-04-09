@@ -27,16 +27,27 @@ function buildPattern(level: number) {
 export function GridMemoryGame({ level, onComplete }: GridMemoryGameProps) {
   const config = useMemo(() => getGridMemoryConfig(level), [level]);
   const pattern = useMemo(() => buildPattern(level), [level]);
-  const [phase, setPhase] = useState<"show" | "input" | "done">("show");
+  const [phase, setPhase] = useState<"show" | "delay" | "input" | "done">("show");
   const [selection, setSelection] = useState<number[]>([]);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [message, setMessage] = useState("Remember the highlighted tiles.");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setPhase("input");
-      setStartedAt(Date.now());
-      setMessage(config.delayedRecall ? "Wait for the delay, then recreate the pattern." : "Recreate the pattern.");
+      if (!config.delayedRecall) {
+        setPhase("input");
+        setStartedAt(Date.now());
+        setMessage("Recreate the pattern.");
+        return;
+      }
+
+      setPhase("delay");
+      setMessage("Hold the pattern in mind through the delay.");
+      window.setTimeout(() => {
+        setPhase("input");
+        setStartedAt(Date.now());
+        setMessage("Recreate the pattern.");
+      }, 900);
     }, config.revealMs);
 
     return () => window.clearTimeout(timer);
@@ -97,7 +108,7 @@ export function GridMemoryGame({ level, onComplete }: GridMemoryGameProps) {
       </div>
       <div className="game-progress">
         <span>Pattern length: {pattern.length}</span>
-        <span>{phase === "show" ? "Memorize the grid" : "Tap the tiles in order"}</span>
+        <span>{phase === "delay" ? "Delay recall" : phase === "show" ? "Memorize the grid" : "Tap the tiles in order"}</span>
       </div>
     </div>
   );

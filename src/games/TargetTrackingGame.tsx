@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getTargetTrackingConfig } from "../lib/game-difficulty";
 
 interface TargetTrackingGameProps {
@@ -19,35 +19,88 @@ export function TargetTrackingGame({ level, onComplete }: TargetTrackingGameProp
   const path = useMemo(() => buildPath(level), [level]);
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
-  const [startedAt, setStartedAt] = useState<number | null>(null);
   const [finished, setFinished] = useState(false);
   const [message, setMessage] = useState("Track the highlighted target as it moves.");
+  const timerRef = useRef<number | null>(null);
+  const scoreRef = useRef(0);
+  const startedAtRef = useRef<number | null>(null);
+  const onCompleteRef = useRef(onComplete);
 
   useEffect(() => {
-    setStartedAt(Date.now());
-    const timer = window.setInterval(() => {
-      setIndex((current) => (current + 1 >= path.length ? current : current + 1));
-    }, config.intervalMs);
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
-    return () => window.clearInterval(timer);
-  }, [level, path.length]);
+  useEffect(() => {
+    const start = Date.now();
+    startedAtRef.current = start;
+    setIndex(0);
+    setScore(0);
+    scoreRef.current = 0;
+    setFinished(false);
+    setMessage("Track the highlighted target as it moves.");
+
+    const schedule = (currentIndex: number) => {
+      timerRef.current = window.setTimeout(() => {
+        if (currentIndex >= path.length - 1) {
+          const reactionMs = Math.max(300, Date.now() - (startedAtRef.current ?? Date.now()));
+          setFinished(true);
+          setMessage("Tracking complete.");
+          onCompleteRef.current({ accuracy: scoreRef.current / path.length, reactionMs });
+          return;
+        }
+
+        setIndex(currentIndex + 1);
+        schedule(currentIndex + 1);
+      }, config.intervalMs);
+    };
+
+    schedule(0);
+
+    return () => {
+      if (timerRef.current !== null) {
+        window.clearTimeout(timerRef.current);
+      }
+    };
+  }, [config.intervalMs, path.length]);
 
   function handleCatch(targetIndex: number) {
     if (finished) return;
     const correct = targetIndex === index;
-    const nextScore = correct ? score + 1 : score;
-    const finishedRun = targetIndex === path.length - 1;
-    setScore(nextScore);
-
-    if (finishedRun) {
-      const reactionMs = Math.max(300, Date.now() - (startedAt ?? Date.now()));
-      setFinished(true);
-      setMessage(correct ? "Tracking complete." : "Tracking ended with a miss.");
-      onComplete({ accuracy: nextScore / path.length, reactionMs });
+    if (!correct) {
+      setMessage("Correction needed.");
       return;
     }
 
-    setMessage(correct ? "Locked on." : "Correction needed.");
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+    }
+
+    const nextScore = scoreRef.current + 1;
+    scoreRef.current = nextScore;
+    setScore(nextScore);
+    setMessage("Locked on.");
+
+    if (targetIndex === path.length - 1) {
+      const reactionMs = Math.max(300, Date.now() - (startedAtRef.current ?? Date.now()));
+      setFinished(true);
+      setMessage("Tracking complete.");
+      onCompleteRef.current({ accuracy: nextScore / path.length, reactionMs });
+      return;
+    }
+
+    setIndex((current) => current + 1);
+    const nextIndex = targetIndex + 1;
+    timerRef.current = window.setTimeout(() => {
+      if (nextIndex >= path.length - 1) {
+        const reactionMs = Math.max(300, Date.now() - (startedAtRef.current ?? Date.now()));
+        setFinished(true);
+        setMessage("Tracking complete.");
+        onCompleteRef.current({ accuracy: scoreRef.current / path.length, reactionMs });
+        return;
+      }
+
+      setIndex(nextIndex + 1);
+    }, config.intervalMs);
   }
 
   return (
@@ -57,6 +110,7 @@ export function TargetTrackingGame({ level, onComplete }: TargetTrackingGameProp
         <span>Tier {config.tier}</span>
         <span>Targets {path.length}</span>
         <span>Interval {config.intervalMs} ms</span>
+        <span>Hits {score}</span>
       </div>
       <div className="tracking-board">
         {path.map((point, pointIndex) => (
