@@ -2,6 +2,7 @@ import { ArrowRight, BrainCircuit, Clock3, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "../components/card";
 import { SectionHeading } from "../components/section-heading";
+import { playCue } from "../lib/audio";
 import { completeOnboarding, setDailySessionPreferences, useBrainCurlsState } from "../store/brain-curls-store";
 import { getLengthLabel, getModeLabel, type DailySessionLength, type DailySessionMode } from "../lib/session-builder";
 
@@ -20,6 +21,7 @@ export function OnboardingPage() {
   const { progress } = useBrainCurlsState();
 
   const handleContinue = () => {
+    void playCue("start");
     completeOnboarding();
     navigate("/workout");
   };
@@ -41,7 +43,10 @@ export function OnboardingPage() {
                 key={mode}
                 type="button"
                 className={`mode-card ${progress.dailySessionMode === mode ? "mode-card-active" : ""}`}
-                onClick={() => setDailySessionPreferences(mode, progress.dailySessionMinutes)}
+                onClick={() => {
+                  void playCue("select");
+                  setDailySessionPreferences(mode, progress.dailySessionMinutes);
+                }}
               >
                 <BrainCircuit size={18} />
                 <strong>{title}</strong>
@@ -59,7 +64,10 @@ export function OnboardingPage() {
                 key={minutes}
                 type="button"
                 className={`length-card ${progress.dailySessionMinutes === minutes ? "length-card-active" : ""}`}
-                onClick={() => setDailySessionPreferences(progress.dailySessionMode, minutes)}
+                onClick={() => {
+                  void playCue("select");
+                  setDailySessionPreferences(progress.dailySessionMode, minutes);
+                }}
               >
                 <Clock3 size={18} />
                 <strong>{getLengthLabel(minutes)}</strong>

@@ -4,6 +4,7 @@ import { Card } from "../components/card";
 import { SectionHeading } from "../components/section-heading";
 import { getNextWorkoutSlug, getGameBySlug } from "../lib/workouts";
 import { buildDailyWorkoutQueue, getLengthLabel, getModeLabel, type DailySessionLength, type DailySessionMode } from "../lib/session-builder";
+import { playCue } from "../lib/audio";
 import { resetWorkout, setDailySessionPreferences, startWorkout, useBrainCurlsState } from "../store/brain-curls-store";
 
 export function WorkoutPage() {
@@ -53,6 +54,7 @@ export function WorkoutPage() {
               type="button"
               className="button button-primary"
               onClick={() => {
+                void playCue("start");
                 if (!session) {
                   startWorkout(queuedSlugs);
                   if (queuedSlugs[0]) navigate(`/games/${queuedSlugs[0]}`);
@@ -109,12 +111,13 @@ export function WorkoutPage() {
                   ? "preset-card-active"
                   : ""
               }`}
-              onClick={() =>
+              onClick={() => {
+                void playCue("select");
                 setDailySessionPreferences(
                   preset.mode as DailySessionMode,
                   preset.minutes as DailySessionLength,
-                )
-              }
+                );
+              }}
             >
               <strong>{preset.label}</strong>
               <span>{preset.minutes} min</span>

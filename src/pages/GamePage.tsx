@@ -12,6 +12,7 @@ import { StroopShiftGame } from "../games/StroopShiftGame";
 import { TargetTrackingGame } from "../games/TargetTrackingGame";
 import { PatternCompletionGame } from "../games/PatternCompletionGame";
 import { WordAssociationGame } from "../games/WordAssociationGame";
+import { playCue } from "../lib/audio";
 
 export function GamePage() {
   const { slug } = useParams();
@@ -56,6 +57,7 @@ export function GamePage() {
   const handleComplete = (metrics: { accuracy: number; reactionMs: number }) => {
     const run = completeGameRun(game, metrics);
     setRunSummary(run);
+    void playCue("success");
   };
 
   const nextSlug = session ? getNextWorkoutSlug(game.slug, session.gameSlugs) : null;
@@ -121,7 +123,10 @@ export function GamePage() {
           <button
             type="button"
             className="button button-primary"
-            onClick={() => navigate(`/games/${nextSlug}`)}
+            onClick={() => {
+              void playCue("select");
+              navigate(`/games/${nextSlug}`);
+            }}
           >
             Next game
           </button>
@@ -130,6 +135,7 @@ export function GamePage() {
             type="button"
             className="button button-primary"
             onClick={() => {
+              void playCue("complete");
               finishWorkout();
               navigate("/dashboard");
             }}

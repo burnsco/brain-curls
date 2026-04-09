@@ -20,6 +20,29 @@
   --radius-md: 16px;
 }
 
+@keyframes float-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(14px, -10px, 0) scale(1.04);
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -39,6 +62,21 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20vmax;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(103, 232, 249, 0.12), transparent 28%),
+    radial-gradient(circle at 80% 20%, rgba(134, 239, 172, 0.12), transparent 26%),
+    radial-gradient(circle at 55% 80%, rgba(251, 191, 36, 0.08), transparent 30%);
+  filter: blur(20px);
+  opacity: 0.85;
+  animation: glow-drift 18s ease-in-out infinite;
 }
 
 a {
@@ -162,6 +200,7 @@ main {
   border: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(12, 21, 37, 0.88), rgba(8, 15, 27, 0.9));
   box-shadow: var(--shadow);
+  animation: float-in 420ms ease both;
 }
 
 .hero-copy {
@@ -271,6 +310,7 @@ main {
   display: grid;
   gap: 18px;
   align-content: start;
+  animation-delay: 80ms;
 }
 
 .panel-label,
@@ -365,6 +405,17 @@ main {
 .progress-card,
 .roadmap-card {
   padding: 22px;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.game-card:hover,
+.progress-card:hover,
+.roadmap-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(103, 232, 249, 0.22);
 }
 
 .pillar-card p,
@@ -518,6 +569,7 @@ main {
   display: grid;
   gap: 18px;
   padding: 28px;
+  animation: float-in 420ms ease both;
 }
 
 .game-shell-card h1 {
@@ -701,6 +753,7 @@ main {
 
 .run-summary-card {
   border-style: dashed;
+  animation: float-in 360ms ease both;
 }
 
 .choice-grid {
@@ -1032,6 +1085,11 @@ main {
   gap: 8px;
   font: inherit;
   cursor: pointer;
+  transition:
+    transform 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .preset-card strong,
@@ -1052,6 +1110,24 @@ main {
 .length-card-active {
   border-color: rgba(103, 232, 249, 0.5);
   background: rgba(103, 232, 249, 0.1);
+  box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.16), 0 14px 28px rgba(103, 232, 249, 0.08);
+  transform: translateY(-1px);
+}
+
+.preset-card:hover,
+.mode-card:hover,
+.length-card:hover,
+.choice-button:hover:not(:disabled),
+.button:hover {
+  transform: translateY(-1px);
+}
+
+.preset-card:active,
+.mode-card:active,
+.length-card:active,
+.choice-button:active,
+.button:active {
+  transform: translateY(0) scale(0.99);
 }
 
 .roadmap-list {
@@ -1119,5 +1195,20 @@ main {
   .hero-copy h1 {
     max-width: none;
     font-size: clamp(2.6rem, 13vw, 4rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  body::before {
+    animation: none;
   }
 }
