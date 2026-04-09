@@ -25,6 +25,7 @@ export function GamePage() {
   } | null>(null);
 
   const game = useMemo(() => (slug ? getGameBySlug(slug) : undefined), [slug]);
+  const isUnlocked = game ? progress.unlockedGameSlugs.includes(game.slug) : false;
 
   if (!game) {
     return (
@@ -32,6 +33,21 @@ export function GamePage() {
         <Card className="progress-card">
           <h1>Game not found</h1>
           <p>The requested route does not match a known game.</p>
+        </Card>
+      </main>
+    );
+  }
+
+  if (!isUnlocked) {
+    return (
+      <main className="section-page">
+        <Card className="progress-card">
+          <p className="panel-label">Locked</p>
+          <h1>{game.name}</h1>
+          <p>{game.hook}</p>
+          <p>
+            Unlock this game by completing more runs. {progress.nextUnlock ? `Next unlock: ${progress.nextUnlock.label} in ${progress.nextUnlock.remainingRuns} run${progress.nextUnlock.remainingRuns === 1 ? "" : "s"}.` : "You have all games unlocked."}
+          </p>
         </Card>
       </main>
     );

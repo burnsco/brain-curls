@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import { pillars } from "../data/pillars";
 import type { CognitiveDomain, TrainingGame } from "../types";
 import { levelFromRecentRuns, scoreRun } from "../lib/scoring";
+import { getEarnedBadges, getUnlockedGameSlugs, getNextUnlock } from "../lib/progression";
 
 export interface GameRunRecord {
   slug: string;
@@ -32,6 +33,9 @@ export interface ProgressState {
   lastPlayedAt: number | null;
   domainProgress: Record<CognitiveDomain, DomainProgress>;
   recentRuns: GameRunRecord[];
+  unlockedGameSlugs: string[];
+  earnedBadges: string[];
+  nextUnlock: { label: string; remainingRuns: number } | null;
 }
 
 export interface SessionState {
@@ -75,12 +79,24 @@ const defaultProgress = (): ProgressState => ({
   lastPlayedAt: null,
   domainProgress: defaultDomainProgress(),
   recentRuns: [],
+  unlockedGameSlugs: [],
+  earnedBadges: [],
+  nextUnlock: null,
 });
 
 const defaultState = (): BrainCurlsState => ({
-  progress: defaultProgress(),
+  progress: enrichProgress(defaultProgress()),
   session: null,
 });
+
+function enrichProgress(progress: ProgressState): ProgressState {
+  return {
+    ...progress,
+    unlockedGameSlugs: getUnlockedGameSlugs(progress),
+    earnedBadges: getEarnedBadges(progress),
+    nextUnlock: getNextUnlock(progress),
+  };
+}
 
 let state = loadState();
 const listeners = new Set<() => void>();
@@ -96,15 +112,16 @@ function loadState(): BrainCurlsState {
     const parsed = JSON.parse(raw) as Partial<BrainCurlsState>;
     const parsedProgress: Partial<ProgressState> = parsed.progress ?? {};
     const parsedDomainProgress = parsedProgress.domainProgress ?? {};
-    return {
-      progress: {
-        ...defaultProgress(),
-        ...parsedProgress,
-        domainProgress: {
-          ...defaultDomainProgress(),
-          ...parsedDomainProgress,
-        },
+    const mergedProgress: ProgressState = {
+      ...defaultProgress(),
+      ...parsedProgress,
+      domainProgress: {
+        ...defaultDomainProgress(),
+        ...parsedDomainProgress,
       },
+    };
+    return {
+      progress: enrichProgress(mergedProgress),
       session: parsed.session ?? null,
     };
   } catch {
@@ -193,6 +210,25 @@ export function completeGameRun(game: TrainingGame, metrics: { accuracy: number;
     const nextCompleted = new Set(currentState.session?.completedSlugs ?? []);
     nextCompleted.add(game.slug);
 
+    const nextProgress: ProgressState = {
+      totalSessions: currentState.progress.totalSessions,
+      totalRuns: currentState.progress.totalRuns + 1,
+      totalScore: currentState.progress.totalScore + score,
+      bestRunScore: Math.max(currentState.progress.bestRunScore, score),
+      currentStreak: currentState.progress.currentStreak + 1,
+      bestStreak: Math.max(currentState.progress.bestStreak, currentState.progress.currentStreak + 1),
+      cognitiveLevel: run.level,
+      lastPlayedAt: now,
+      domainProgress: {
+        ...currentState.progress.domainProgress,
+        [run.domain]: nextDomainState,
+      },
+      recentRuns: [run, ...currentState.progress.recentRuns].slice(0, MAX_RECENT_RUNS),
+      unlockedGameSlugs: currentState.progress.unlockedGameSlugs,
+      earnedBadges: currentState.progress.earnedBadges,
+      nextUnlock: currentState.progress.nextUnlock,
+    };
+
     return {
       session: currentState.session
         ? {
@@ -200,21 +236,7 @@ export function completeGameRun(game: TrainingGame, metrics: { accuracy: number;
             completedSlugs: Array.from(nextCompleted),
           }
         : null,
-      progress: {
-        totalSessions: currentState.progress.totalSessions,
-        totalRuns: currentState.progress.totalRuns + 1,
-        totalScore: currentState.progress.totalScore + score,
-        bestRunScore: Math.max(currentState.progress.bestRunScore, score),
-        currentStreak: currentState.progress.currentStreak + 1,
-        bestStreak: Math.max(currentState.progress.bestStreak, currentState.progress.currentStreak + 1),
-        cognitiveLevel: run.level,
-        lastPlayedAt: now,
-        domainProgress: {
-          ...currentState.progress.domainProgress,
-          [run.domain]: nextDomainState,
-        },
-        recentRuns: [run, ...currentState.progress.recentRuns].slice(0, MAX_RECENT_RUNS),
-      },
+      progress: enrichProgress(nextProgress),
     };
   });
 

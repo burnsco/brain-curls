@@ -5,11 +5,13 @@ import type { TrainingGame } from "../types";
 
 interface GameCardProps {
   game: TrainingGame;
+  locked?: boolean;
+  unlockText?: string;
 }
 
-export function GameCard({ game }: GameCardProps) {
+export function GameCard({ game, locked = false, unlockText }: GameCardProps) {
   return (
-    <Card className="game-card">
+    <Card className={`game-card ${locked ? "game-card-locked" : ""}`.trim()}>
       <div className="game-topline">
         <span className={`status status-${game.status}`}>{game.status}</span>
         <span className="domains">{game.domains.join(" · ")}</span>
@@ -23,8 +25,8 @@ export function GameCard({ game }: GameCardProps) {
         ))}
       </ul>
       <div className="game-footer">
-        {game.status === "planned" ? (
-          <span className="coming-soon">Coming soon</span>
+        {locked ? (
+          <span className="coming-soon">{unlockText ?? "Locked"}</span>
         ) : (
           <Link className="inline-link" to={`/games/${game.slug}`}>
             Open game

@@ -9,14 +9,18 @@ export function getGameBySlug(slug: string): TrainingGame | undefined {
   return starterGames.find((game) => game.slug === slug);
 }
 
-export function getDefaultWorkoutSlugs(): string[] {
-  return [
+export function getDefaultWorkoutSlugs(unlockedSlugs: string[] = []): string[] {
+  const preferredOrder = [
     "sequence-memory",
     "grid-memory",
     "number-span",
     "stroop-shift",
     "pattern-completion",
+    "word-association",
+    "target-tracking",
   ];
+
+  return preferredOrder.filter((slug) => unlockedSlugs.includes(slug));
 }
 
 export function getNextWorkoutSlug(currentSlug: string, queue: string[]): string | null {

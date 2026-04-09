@@ -7,8 +7,8 @@ import { resetWorkout, startWorkout, useBrainCurlsState } from "../store/brain-c
 
 export function WorkoutPage() {
   const navigate = useNavigate();
-  const { session } = useBrainCurlsState();
-  const queuedSlugs = session?.gameSlugs ?? getDefaultWorkoutSlugs();
+  const { session, progress } = useBrainCurlsState();
+  const queuedSlugs = session?.gameSlugs ?? getDefaultWorkoutSlugs(progress.unlockedGameSlugs);
   const lastCompleted = session?.completedSlugs.at(-1) ?? "";
   const nextSlug = session ? getNextWorkoutSlug(lastCompleted, queuedSlugs) : queuedSlugs[0];
   const queuedGames = queuedSlugs.map((slug) => getGameBySlug(slug)).filter(Boolean);
@@ -26,6 +26,9 @@ export function WorkoutPage() {
         <Card className="progress-card">
           <p className="panel-label">Today&apos;s workout</p>
           <h3>{queuedGames.length} games queued</h3>
+          <p className="game-mechanic">
+            Unlocks shape the queue. New games are added when progression milestones are reached.
+          </p>
           <div className="workout-list">
             {queuedGames.map((game) => (
               <div key={game?.slug}>

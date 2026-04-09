@@ -104,8 +104,47 @@ export function HomePage() {
               <dt>Trend focus</dt>
               <dd>{progress.totalRuns > 0 ? "Tracked" : "Consistency"}</dd>
             </div>
+            <div>
+              <dt>Unlocked games</dt>
+              <dd>{progress.unlockedGameSlugs.length}</dd>
+            </div>
           </dl>
         </Card>
+      </section>
+
+      <section className="section">
+        <SectionHeading
+          eyebrow="progression layer"
+          title="Unlocks and streaks keep the loop moving."
+          description="The app now tracks earned badges, visible unlock milestones, and the next game you’re working toward."
+        />
+
+        <div className="progress-layout">
+          <Card className="progress-card">
+            <p className="panel-label">Badges earned</p>
+            <div className="badge-row">
+              {progress.earnedBadges.length > 0 ? (
+                progress.earnedBadges.map((badge) => (
+                  <span key={badge} className="badge-pill">
+                    {badge}
+                  </span>
+                ))
+              ) : (
+                <span className="empty-state">No badges yet. Finish a few runs to unlock them.</span>
+              )}
+            </div>
+          </Card>
+
+          <Card className="progress-card">
+            <p className="panel-label">Next unlock</p>
+            <h3>{progress.nextUnlock ? progress.nextUnlock.label : "All games unlocked"}</h3>
+            <p>
+              {progress.nextUnlock
+                ? `${progress.nextUnlock.remainingRuns} more run${progress.nextUnlock.remainingRuns === 1 ? "" : "s"} to unlock the next drill.`
+                : "The full starter set is available."}
+            </p>
+          </Card>
+        </div>
       </section>
 
       <section className="section" id="pillars">
