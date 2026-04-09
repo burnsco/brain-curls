@@ -1,18 +1,28 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card } from "../components/card";
 import { GameShell } from "../components/game-shell";
 import { getGameBySlug, getNextWorkoutSlug } from "../lib/workouts";
-import { completeGameRun, useBrainCurlsState } from "../store/brain-curls-store";
+import { completeGameRun, finishWorkout, useBrainCurlsState } from "../store/brain-curls-store";
 import { GridMemoryGame } from "../games/GridMemoryGame";
 import { NumberSpanGame } from "../games/NumberSpanGame";
 import { ReactionDrillGame } from "../games/ReactionDrillGame";
 import { SequenceMemoryGame } from "../games/SequenceMemoryGame";
+import { StroopShiftGame } from "../games/StroopShiftGame";
+import { TargetTrackingGame } from "../games/TargetTrackingGame";
+import { PatternCompletionGame } from "../games/PatternCompletionGame";
+import { WordAssociationGame } from "../games/WordAssociationGame";
 
 export function GamePage() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { progress, session } = useBrainCurlsState();
+  const [runSummary, setRunSummary] = useState<{
+    accuracy: number;
+    reactionMs: number;
+    score: number;
+    level: number;
+  } | null>(null);
 
   const game = useMemo(() => (slug ? getGameBySlug(slug) : undefined), [slug]);
 
@@ -28,10 +38,25 @@ export function GamePage() {
   }
 
   const handleComplete = (metrics: { accuracy: number; reactionMs: number }) => {
-    completeGameRun(game, metrics);
+    const run = completeGameRun(game, metrics);
+    setRunSummary(run);
   };
 
   const nextSlug = session ? getNextWorkoutSlug(game.slug, session.gameSlugs) : null;
+
+  useEffect(() => {
+    if (!runSummary) return;
+
+    const target = nextSlug ? `/games/${nextSlug}` : "/dashboard";
+    const timer = window.setTimeout(() => {
+      if (!nextSlug) {
+        finishWorkout();
+      }
+      navigate(target);
+    }, 900);
+
+    return () => window.clearTimeout(timer);
+  }, [navigate, nextSlug, runSummary]);
 
   return (
     <GameShell
@@ -51,12 +76,27 @@ export function GamePage() {
       {game.slug === "reaction-drill" && (
         <ReactionDrillGame level={progress.cognitiveLevel} onComplete={handleComplete} />
       )}
-      {game.status === "planned" && game.slug !== "reaction-drill" && game.slug !== "sequence-memory" && game.slug !== "grid-memory" && game.slug !== "number-span" && (
-        <Card className="progress-card">
-          <h3>This game is planned</h3>
+      {game.slug === "stroop-shift" && (
+        <StroopShiftGame level={progress.cognitiveLevel} onComplete={handleComplete} />
+      )}
+      {game.slug === "target-tracking" && (
+        <TargetTrackingGame level={progress.cognitiveLevel} onComplete={handleComplete} />
+      )}
+      {game.slug === "pattern-completion" && (
+        <PatternCompletionGame level={progress.cognitiveLevel} onComplete={handleComplete} />
+      )}
+      {game.slug === "word-association" && (
+        <WordAssociationGame level={progress.cognitiveLevel} onComplete={handleComplete} />
+      )}
+
+      {runSummary && (
+        <Card className="progress-card run-summary-card">
+          <p className="panel-label">Run complete</p>
+          <h3>{runSummary.score} points</h3>
           <p>
-            The structure is in the catalog, but the playable runner has not been built yet.
+            Accuracy {Math.round(runSummary.accuracy * 100)}% · {runSummary.reactionMs} ms · level {runSummary.level}
           </p>
+          <p>{nextSlug ? `Auto-advancing to /games/${nextSlug}` : "Wrapping up the workout and returning to the dashboard."}</p>
         </Card>
       )}
 
@@ -73,7 +113,10 @@ export function GamePage() {
           <button
             type="button"
             className="button button-primary"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => {
+              finishWorkout();
+              navigate("/dashboard");
+            }}
           >
             Finish session
           </button>

@@ -217,6 +217,8 @@ export function completeGameRun(game: TrainingGame, metrics: { accuracy: number;
       },
     };
   });
+
+  return run;
 }
 
 export function resetWorkout() {
@@ -224,6 +226,10 @@ export function resetWorkout() {
     ...current,
     session: null,
   }));
+}
+
+export function finishWorkout() {
+  resetWorkout();
 }
 
 export function resetProgress() {

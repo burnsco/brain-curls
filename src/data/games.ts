@@ -43,7 +43,7 @@ export const starterGames: TrainingGame[] = [
   {
     slug: "stroop-shift",
     name: "Stroop Shift",
-    status: "prototype",
+    status: "ready",
     domains: ["Attention", "Speed"],
     hook: "Tap the color, not the word, when the two conflict.",
     mechanic: "Mix congruent and incongruent trials to train inhibition and switching.",
@@ -56,7 +56,7 @@ export const starterGames: TrainingGame[] = [
   {
     slug: "target-tracking",
     name: "Target Tracking",
-    status: "planned",
+    status: "prototype",
     domains: ["Attention", "Spatial"],
     hook: "Follow a few moving targets while noise objects move around them.",
     mechanic: "Force the user to maintain target identity through motion, clustering, and interruptions.",
@@ -69,7 +69,7 @@ export const starterGames: TrainingGame[] = [
   {
     slug: "pattern-completion",
     name: "Pattern Completion",
-    status: "planned",
+    status: "ready",
     domains: ["Reasoning"],
     hook: "Predict the next item in a visual or numeric sequence.",
     mechanic: "Show a structured sequence and ask for the continuation or missing element.",
@@ -82,7 +82,7 @@ export const starterGames: TrainingGame[] = [
   {
     slug: "word-association",
     name: "Word Association",
-    status: "planned",
+    status: "ready",
     domains: ["Language", "Speed"],
     hook: "Find the closest meaning or strongest match under time pressure.",
     mechanic: "Use rapid-choice verbal prompts with shrinking response windows.",

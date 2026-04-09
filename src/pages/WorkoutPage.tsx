@@ -9,8 +9,10 @@ export function WorkoutPage() {
   const navigate = useNavigate();
   const { session } = useBrainCurlsState();
   const queuedSlugs = session?.gameSlugs ?? getDefaultWorkoutSlugs();
-  const nextSlug = session ? getNextWorkoutSlug(session.completedSlugs[session.completedSlugs.length - 1] ?? "", queuedSlugs) : queuedSlugs[0];
+  const lastCompleted = session?.completedSlugs.at(-1) ?? "";
+  const nextSlug = session ? getNextWorkoutSlug(lastCompleted, queuedSlugs) : queuedSlugs[0];
   const queuedGames = queuedSlugs.map((slug) => getGameBySlug(slug)).filter(Boolean);
+  const sessionLabel = session ? "Resume workout" : "Start workout";
 
   return (
     <main className="section-page">
@@ -37,11 +39,18 @@ export function WorkoutPage() {
               type="button"
               className="button button-primary"
               onClick={() => {
-                startWorkout(queuedSlugs);
-                if (queuedSlugs[0]) navigate(`/games/${queuedSlugs[0]}`);
+                if (!session) {
+                  startWorkout(queuedSlugs);
+                  if (queuedSlugs[0]) navigate(`/games/${queuedSlugs[0]}`);
+                  return;
+                }
+
+                if (nextSlug) {
+                  navigate(`/games/${nextSlug}`);
+                }
               }}
             >
-              Start workout
+              {sessionLabel}
               <Sparkles size={16} />
             </button>
             <button

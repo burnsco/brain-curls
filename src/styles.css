@@ -679,6 +679,199 @@ main {
   flex-wrap: wrap;
 }
 
+.run-summary-card {
+  border-style: dashed;
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.choice-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.choice-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(103, 232, 249, 0.28);
+}
+
+.choice-button-large {
+  min-height: 72px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.choice-button:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.color-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.16);
+}
+
+.stroop-card,
+.word-card {
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.02));
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 800;
+}
+
+.pattern-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pattern-strip span,
+.pattern-missing {
+  min-height: 92px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.pattern-missing {
+  color: var(--muted);
+}
+
+.tracking-board {
+  position: relative;
+  min-height: 360px;
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at 25% 25%, rgba(103, 232, 249, 0.06), transparent 28%),
+    radial-gradient(circle at 75% 70%, rgba(134, 239, 172, 0.06), transparent 30%),
+    rgba(255, 255, 255, 0.02);
+}
+
+.tracking-dot {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  margin-left: -26px;
+  margin-top: -26px;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.tracking-dot.active {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.95), rgba(251, 113, 133, 0.92));
+  box-shadow: 0 0 0 6px rgba(251, 191, 36, 0.12);
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.chart-card-wide {
+  grid-column: 1 / -1;
+}
+
+.chart-card {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+}
+
+.sparkline {
+  width: 100%;
+  height: 120px;
+}
+
+.sparkline polyline {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.bar-chart {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.bar-column {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.bar-track {
+  width: 100%;
+  height: 160px;
+  display: flex;
+  align-items: end;
+  border-radius: 20px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bar-fill {
+  width: 100%;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(103, 232, 249, 0.95), rgba(134, 239, 172, 0.55));
+  box-shadow: 0 12px 24px rgba(103, 232, 249, 0.16);
+}
+
+.bar-column strong {
+  font-size: 0.84rem;
+}
+
+.bar-column span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .dashboard-stats span {
   display: block;
   color: var(--muted);
@@ -708,7 +901,8 @@ main {
 @media (max-width: 980px) {
   .hero,
   .progress-layout,
-  .roadmap-list {
+  .roadmap-list,
+  .chart-grid {
     grid-template-columns: 1fr;
   }
 
@@ -744,7 +938,10 @@ main {
   .dashboard-stats,
   .game-shell-meta,
   .sequence-grid,
-  .grid-memory-board {
+  .grid-memory-board,
+  .choice-grid,
+  .pattern-strip,
+  .bar-chart {
     grid-template-columns: 1fr;
   }
 

@@ -1,5 +1,6 @@
 import { SectionHeading } from "../components/section-heading";
 import { Card } from "../components/card";
+import { ProgressCharts } from "../components/progress-charts";
 import { useBrainCurlsState } from "../store/brain-curls-store";
 
 export function DashboardPage() {
@@ -40,26 +41,9 @@ export function DashboardPage() {
             </div>
           </div>
         </Card>
-
-        <Card className="progress-card">
-          <p className="panel-label">Domain snapshot</p>
-          <div className="domain-list">
-            {Object.entries(progress.domainProgress).map(([domain, stats]) => {
-              const averageAccuracy = stats.runs ? Math.round((stats.totalAccuracy / stats.runs) * 100) : 0;
-              const averageReaction = stats.runs ? Math.round(stats.totalReactionMs / stats.runs) : 0;
-
-              return (
-                <div key={domain}>
-                  <strong>{domain}</strong>
-                  <span>
-                    best {stats.bestScore} · acc {averageAccuracy}% · {averageReaction} ms
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
       </div>
+
+      <ProgressCharts progress={progress} />
 
       <Card className="progress-card">
         <p className="panel-label">Recent runs</p>

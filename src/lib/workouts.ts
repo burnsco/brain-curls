@@ -10,9 +10,13 @@ export function getGameBySlug(slug: string): TrainingGame | undefined {
 }
 
 export function getDefaultWorkoutSlugs(): string[] {
-  return getPlayableGames()
-    .slice(0, 3)
-    .map((game) => game.slug);
+  return [
+    "sequence-memory",
+    "grid-memory",
+    "number-span",
+    "stroop-shift",
+    "pattern-completion",
+  ];
 }
 
 export function getNextWorkoutSlug(currentSlug: string, queue: string[]): string | null {
