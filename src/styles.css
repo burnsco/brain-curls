@@ -923,6 +923,61 @@ main {
   font-size: 0.88rem;
 }
 
+.review-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.review-chart-grid > div {
+  display: grid;
+  gap: 12px;
+}
+
+.review-chart-grid > div > strong {
+  font-size: 0.96rem;
+}
+
+.review-bars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.review-bar-column {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.review-bar-track {
+  width: 100%;
+  height: 150px;
+  display: flex;
+  align-items: end;
+  padding: 8px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.review-bar-fill {
+  width: 100%;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(103, 232, 249, 0.95), rgba(134, 239, 172, 0.55));
+}
+
+.review-bar-fill-accuracy {
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.95), rgba(251, 113, 133, 0.55));
+}
+
+.review-bar-column span,
+.review-bar-column small {
+  color: var(--muted);
+  text-align: center;
+}
+
 .telemetry-layout {
   align-items: start;
 }

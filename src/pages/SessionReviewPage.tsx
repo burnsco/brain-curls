@@ -2,6 +2,7 @@ import { ArrowRight, Sparkles, Target } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card } from "../components/card";
 import { SectionHeading } from "../components/section-heading";
+import { SessionReviewCharts } from "../components/session-review-charts";
 import { playCue } from "../lib/audio";
 import { getModeLabel } from "../lib/session-builder";
 import { useBrainCurlsState } from "../store/brain-curls-store";
@@ -108,6 +109,7 @@ export function SessionReviewPage() {
           </p>
         </Card>
       </div>
+      <SessionReviewCharts review={lastWorkoutReview} />
       <Card className="progress-card">
         <p className="panel-label">Session route</p>
         <p className="game-mechanic">

@@ -68,6 +68,7 @@ export interface WorkoutReviewState {
   averageReactionMs: number;
   bestScore: number;
   strongestDomain: CognitiveDomain | null;
+  sessionRuns: GameRunRecord[];
 }
 
 export interface BrainCurlsState {
@@ -443,6 +444,7 @@ export function finishWorkout() {
         averageReactionMs,
         bestScore: sessionRuns.reduce((best, run) => Math.max(best, run.score), 0),
         strongestDomain,
+        sessionRuns,
       },
     };
   });
