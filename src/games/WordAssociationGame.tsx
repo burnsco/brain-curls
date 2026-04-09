@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getWordAssociationConfig } from "../lib/game-difficulty";
 
 const prompts = [
   { word: "glacier", answer: "ice", distractors: ["paper", "salt", "stone"] },
@@ -18,10 +19,11 @@ function buildPrompt(level: number) {
 }
 
 export function WordAssociationGame({ level, onComplete }: WordAssociationGameProps) {
+  const config = useMemo(() => getWordAssociationConfig(level), [level]);
   const prompt = useMemo(() => buildPrompt(level), [level]);
   const options = useMemo(
-    () => [prompt.answer, ...prompt.distractors].sort(() => Math.random() - 0.5),
-    [prompt],
+    () => [prompt.answer, ...prompt.distractors].slice(0, config.options).sort(() => Math.random() - 0.5),
+    [prompt, config.options],
   );
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [message, setMessage] = useState("Pick the closest meaning.");
@@ -43,6 +45,11 @@ export function WordAssociationGame({ level, onComplete }: WordAssociationGamePr
   return (
     <div className="game-play">
       <div className="game-status">{message}</div>
+      <div className="game-meta-row">
+        <span>Tier {config.tier}</span>
+        <span>Choices {options.length}</span>
+        <span>Prompt {prompt.word}</span>
+      </div>
       <div className="word-card">
         <span>{prompt.word}</span>
       </div>

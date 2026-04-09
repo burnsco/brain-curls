@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getTargetTrackingConfig } from "../lib/game-difficulty";
 
 interface TargetTrackingGameProps {
   level: number;
@@ -6,7 +7,7 @@ interface TargetTrackingGameProps {
 }
 
 function buildPath(level: number) {
-  const points = 5 + Math.floor(level / 2);
+  const points = getTargetTrackingConfig(level).pathPoints;
   return Array.from({ length: points }, (_, index) => ({
     x: 10 + ((index * 19 + level * 13) % 80),
     y: 14 + ((index * 23 + level * 11) % 74),
@@ -14,6 +15,7 @@ function buildPath(level: number) {
 }
 
 export function TargetTrackingGame({ level, onComplete }: TargetTrackingGameProps) {
+  const config = useMemo(() => getTargetTrackingConfig(level), [level]);
   const path = useMemo(() => buildPath(level), [level]);
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -25,7 +27,7 @@ export function TargetTrackingGame({ level, onComplete }: TargetTrackingGameProp
     setStartedAt(Date.now());
     const timer = window.setInterval(() => {
       setIndex((current) => (current + 1 >= path.length ? current : current + 1));
-    }, Math.max(600, 1100 - level * 80));
+    }, config.intervalMs);
 
     return () => window.clearInterval(timer);
   }, [level, path.length]);
@@ -51,6 +53,11 @@ export function TargetTrackingGame({ level, onComplete }: TargetTrackingGameProp
   return (
     <div className="game-play">
       <div className="game-status">{message}</div>
+      <div className="game-meta-row">
+        <span>Tier {config.tier}</span>
+        <span>Targets {path.length}</span>
+        <span>Interval {config.intervalMs} ms</span>
+      </div>
       <div className="tracking-board">
         {path.map((point, pointIndex) => (
           <button

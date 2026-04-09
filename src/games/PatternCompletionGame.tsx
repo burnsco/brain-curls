@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getPatternCompletionConfig } from "../lib/game-difficulty";
 
 const shapes = ["▲", "●", "■", "◆", "★", "⬟"];
 
@@ -8,16 +9,18 @@ interface PatternCompletionGameProps {
 }
 
 function buildPattern(level: number) {
+  const { length } = getPatternCompletionConfig(level);
   const start = level % shapes.length;
-  return Array.from({ length: 4 }, (_, index) => shapes[(start + index) % shapes.length]);
+  return Array.from({ length }, (_, index) => shapes[(start + index) % shapes.length]);
 }
 
 export function PatternCompletionGame({ level, onComplete }: PatternCompletionGameProps) {
+  const config = useMemo(() => getPatternCompletionConfig(level), [level]);
   const pattern = useMemo(() => buildPattern(level), [level]);
   const answer = pattern[pattern.length - 1];
   const options = useMemo(
-    () => Array.from(new Set([answer, ...shapes.filter((shape) => shape !== answer).slice(0, 3)])),
-    [answer],
+    () => Array.from(new Set([answer, ...shapes.filter((shape) => shape !== answer).slice(0, config.options - 1)])),
+    [answer, config.options],
   );
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [message, setMessage] = useState("Find the missing shape in the sequence.");
@@ -39,6 +42,11 @@ export function PatternCompletionGame({ level, onComplete }: PatternCompletionGa
   return (
     <div className="game-play">
       <div className="game-status">{message}</div>
+      <div className="game-meta-row">
+        <span>Tier {config.tier}</span>
+        <span>Length {pattern.length}</span>
+        <span>Choices {options.length}</span>
+      </div>
       <div className="pattern-strip" aria-label="Pattern completion sequence">
         {pattern.map((shape, index) => (
           <span key={`${shape}-${index}`}>{shape}</span>

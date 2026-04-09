@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-
-const gridSize = 3;
+import { getGridMemoryConfig } from "../lib/game-difficulty";
 
 interface GridMemoryGameProps {
   level: number;
@@ -8,7 +7,9 @@ interface GridMemoryGameProps {
 }
 
 function buildPattern(level: number) {
-  const length = Math.min(6, 3 + Math.floor(level / 2));
+  const config = getGridMemoryConfig(level);
+  const length = config.patternLength;
+  const gridSize = config.gridSize;
   const seen = new Set<number>();
   const pattern: number[] = [];
 
@@ -24,6 +25,7 @@ function buildPattern(level: number) {
 }
 
 export function GridMemoryGame({ level, onComplete }: GridMemoryGameProps) {
+  const config = useMemo(() => getGridMemoryConfig(level), [level]);
   const pattern = useMemo(() => buildPattern(level), [level]);
   const [phase, setPhase] = useState<"show" | "input" | "done">("show");
   const [selection, setSelection] = useState<number[]>([]);
@@ -34,8 +36,8 @@ export function GridMemoryGame({ level, onComplete }: GridMemoryGameProps) {
     const timer = window.setTimeout(() => {
       setPhase("input");
       setStartedAt(Date.now());
-      setMessage("Recreate the pattern.");
-    }, 2200);
+      setMessage(config.delayedRecall ? "Wait for the delay, then recreate the pattern." : "Recreate the pattern.");
+    }, config.revealMs);
 
     return () => window.clearTimeout(timer);
   }, []);
@@ -71,8 +73,13 @@ export function GridMemoryGame({ level, onComplete }: GridMemoryGameProps) {
   return (
     <div className="game-play">
       <div className="game-status">{message}</div>
+      <div className="game-meta-row">
+        <span>Tier {config.tier}</span>
+        <span>Grid {config.gridSize}×{config.gridSize}</span>
+        <span>Length {pattern.length}</span>
+      </div>
       <div className="grid-memory-board">
-        {Array.from({ length: gridSize * gridSize }, (_, index) => {
+        {Array.from({ length: config.gridSize * config.gridSize }, (_, index) => {
           const isLit = phase === "show" && pattern.includes(index);
           const isSelected = selection.includes(index);
 

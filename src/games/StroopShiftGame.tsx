@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getStroopConfig } from "../lib/game-difficulty";
 
 const colors = [
   { name: "scarlet", value: "#ef4444" },
@@ -33,6 +34,7 @@ function buildTrials(level: number): Trial[] {
 }
 
 export function StroopShiftGame({ level, onComplete }: StroopShiftGameProps) {
+  const config = useMemo(() => getStroopConfig(level), [level]);
   const trials = useMemo(() => buildTrials(level), [level]);
   const [index, setIndex] = useState(0);
   const [correct, setCorrect] = useState(0);
@@ -73,6 +75,11 @@ export function StroopShiftGame({ level, onComplete }: StroopShiftGameProps) {
   return (
     <div className="game-play">
       <div className="game-status">{message}</div>
+      <div className="game-meta-row">
+        <span>Tier {config.tier}</span>
+        <span>Trials {trials.length}</span>
+        <span>Conflict {Math.round((1 - config.congruentRate) * 100)}%</span>
+      </div>
       <div className="stroop-card">
         <span style={{ color: trial.color }}>{trial.word}</span>
       </div>
