@@ -37,3 +37,43 @@ export function getNextUnlock(progress: ProgressState) {
     remainingRuns,
   };
 }
+
+export function getUnlockSteps(progress: ProgressState) {
+  return GAME_UNLOCKS.map((unlock) => ({
+    slug: unlock.slug,
+    name: starterGames.find((game) => game.slug === unlock.slug)?.name ?? unlock.slug,
+    runsRequired: unlock.runs,
+    unlocked: progress.totalRuns >= unlock.runs,
+  }));
+}
+
+export function getDailyHistory(progress: ProgressState, days = 7) {
+  const buckets = new Map<string, { runs: number; score: number }>();
+  const dayMs = 24 * 60 * 60 * 1000;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const date = new Date(today.getTime() - i * dayMs);
+    const key = date.toISOString().slice(0, 10);
+    buckets.set(key, { runs: 0, score: 0 });
+  }
+
+  for (const run of progress.recentRuns) {
+    const date = new Date(run.completedAt);
+    date.setHours(0, 0, 0, 0);
+    const key = date.toISOString().slice(0, 10);
+    const bucket = buckets.get(key);
+    if (bucket) {
+      bucket.runs += 1;
+      bucket.score += run.score;
+    }
+  }
+
+  return Array.from(buckets.entries()).map(([key, value]) => ({
+    key,
+    label: new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(new Date(`${key}T00:00:00`)),
+    runs: value.runs,
+    score: value.score,
+  }));
+}

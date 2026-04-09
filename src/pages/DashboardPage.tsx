@@ -1,6 +1,7 @@
 import { SectionHeading } from "../components/section-heading";
 import { Card } from "../components/card";
 import { ProgressCharts } from "../components/progress-charts";
+import { ProgressHistory } from "../components/progress-history";
 import { useBrainCurlsState } from "../store/brain-curls-store";
 
 export function DashboardPage() {
@@ -44,6 +45,8 @@ export function DashboardPage() {
       </div>
 
       <ProgressCharts progress={progress} />
+
+      <ProgressHistory progress={progress} />
 
       <Card className="progress-card">
         <p className="panel-label">Recent runs</p>
