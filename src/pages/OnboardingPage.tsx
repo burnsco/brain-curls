@@ -47,7 +47,7 @@ const walkthroughSteps = [
 
 export function OnboardingPage() {
   const navigate = useNavigate();
-  const { progress } = useBrainCurlsState();
+  const { progress, settings } = useBrainCurlsState();
   const [step, setStep] = useState(0);
 
   const previewQueue = useMemo(
@@ -56,11 +56,17 @@ export function OnboardingPage() {
         progress.unlockedGameSlugs,
         progress.dailySessionMode,
         progress.dailySessionMinutes,
+        settings,
       ),
-    [progress.dailySessionMode, progress.dailySessionMinutes, progress.unlockedGameSlugs],
+    [progress.dailySessionMode, progress.dailySessionMinutes, progress.unlockedGameSlugs, settings],
   );
   const previewGames = previewQueue.map((slug) => getGameBySlug(slug)).filter(Boolean);
   const isLastStep = step === walkthroughSteps.length - 1;
+  const profileLabel = settings.reducedMotion
+    ? "motion-light"
+    : settings.audioEnabled
+      ? "full-feedback"
+      : "quiet";
 
   const advanceStep = () => {
     if (step < walkthroughSteps.length - 1) {
@@ -207,6 +213,9 @@ export function OnboardingPage() {
           <p className="game-progress">
             <span>Progress persists locally</span>
             <span>Unlocked games shape the workout queue</span>
+          </p>
+          <p className="game-mechanic">
+            Current profile: <strong>{profileLabel}</strong>. Saved settings bias what the next workout surfaces first.
           </p>
         </Card>
       </div>

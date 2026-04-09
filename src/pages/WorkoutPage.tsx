@@ -9,18 +9,24 @@ import { resetWorkout, setDailySessionPreferences, startWorkout, useBrainCurlsSt
 
 export function WorkoutPage() {
   const navigate = useNavigate();
-  const { session, progress } = useBrainCurlsState();
+  const { session, progress, settings } = useBrainCurlsState();
   const queuedSlugs =
     session?.gameSlugs ??
     buildDailyWorkoutQueue(
       progress.unlockedGameSlugs,
       progress.dailySessionMode,
       progress.dailySessionMinutes,
+      settings,
     );
   const lastCompleted = session?.completedSlugs.at(-1) ?? "";
   const nextSlug = session ? getNextWorkoutSlug(lastCompleted, queuedSlugs) : queuedSlugs[0];
   const queuedGames = queuedSlugs.map((slug) => getGameBySlug(slug)).filter(Boolean);
   const sessionLabel = session ? "Resume workout" : "Start workout";
+  const profileLabel = settings.reducedMotion
+    ? "Motion-light workout"
+    : settings.audioEnabled
+      ? "Full feedback workout"
+      : "Quiet workout";
 
   return (
     <main className="section-page">
@@ -35,7 +41,8 @@ export function WorkoutPage() {
           <p className="panel-label">Today&apos;s workout</p>
           <h3>{queuedGames.length} games queued</h3>
           <p className="game-mechanic">
-            Unlocks shape the queue. New games are added when progression milestones are reached.
+            {profileLabel}. Unlocks shape the queue, and saved settings bias the order toward the kind of
+            session you actually want to run today.
           </p>
           <div className="session-summary">
             <span>{getModeLabel(progress.dailySessionMode)}</span>
@@ -84,7 +91,9 @@ export function WorkoutPage() {
           <p className="panel-label">Session routing</p>
           <h3>{session ? "Live session active" : "No active session"}</h3>
           <p>
-            {nextSlug ? `Next route: /games/${nextSlug}` : "The default workout plan is ready to launch."}
+            {nextSlug
+              ? `Next route: /games/${nextSlug}`
+              : `${profileLabel} is ready to launch with ${getLengthLabel(progress.dailySessionMinutes)} of work.`}
           </p>
           <Link className="inline-link" to="/dashboard">
             View dashboard
