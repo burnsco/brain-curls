@@ -63,6 +63,12 @@ export interface BrainCurlsState {
   session: SessionState | null;
 }
 
+export interface BrainCurlsBackup {
+  progress: ProgressState;
+  settings: AppSettings;
+  session: SessionState | null;
+}
+
 const STORAGE_KEY = "brain-curls:state:v1";
 const MAX_RECENT_RUNS = 8;
 
@@ -123,6 +129,35 @@ function enrichProgress(progress: ProgressState): ProgressState {
   };
 }
 
+function normalizeState(snapshot: Partial<BrainCurlsBackup>): BrainCurlsState {
+  const parsedProgress: Partial<ProgressState> = snapshot.progress ?? {};
+  const parsedSettings: Partial<AppSettings> = snapshot.settings ?? {};
+  const parsedDomainProgress = parsedProgress.domainProgress ?? {};
+  const mergedSettings: AppSettings = {
+    ...defaultSettings(),
+    ...parsedSettings,
+    dailySessionMode: parsedSettings.dailySessionMode ?? parsedProgress.dailySessionMode ?? defaultSettings().dailySessionMode,
+    dailySessionMinutes:
+      parsedSettings.dailySessionMinutes ?? parsedProgress.dailySessionMinutes ?? defaultSettings().dailySessionMinutes,
+  };
+  const mergedProgress: ProgressState = {
+    ...defaultProgress(),
+    ...parsedProgress,
+    dailySessionMode: mergedSettings.dailySessionMode,
+    dailySessionMinutes: mergedSettings.dailySessionMinutes,
+    domainProgress: {
+      ...defaultDomainProgress(),
+      ...parsedDomainProgress,
+    },
+  };
+
+  return {
+    progress: enrichProgress(mergedProgress),
+    settings: mergedSettings,
+    session: snapshot.session ?? null,
+  };
+}
+
 let state = loadState();
 const listeners = new Set<() => void>();
 
@@ -134,32 +169,7 @@ function loadState(): BrainCurlsState {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState();
-    const parsed = JSON.parse(raw) as Partial<BrainCurlsState>;
-    const parsedProgress: Partial<ProgressState> = parsed.progress ?? {};
-    const parsedSettings: Partial<AppSettings> = parsed.settings ?? {};
-    const parsedDomainProgress = parsedProgress.domainProgress ?? {};
-    const mergedSettings: AppSettings = {
-      ...defaultSettings(),
-      ...parsedSettings,
-      dailySessionMode: parsedSettings.dailySessionMode ?? parsedProgress.dailySessionMode ?? defaultSettings().dailySessionMode,
-      dailySessionMinutes:
-        parsedSettings.dailySessionMinutes ?? parsedProgress.dailySessionMinutes ?? defaultSettings().dailySessionMinutes,
-    };
-    const mergedProgress: ProgressState = {
-      ...defaultProgress(),
-      ...parsedProgress,
-      dailySessionMode: mergedSettings.dailySessionMode,
-      dailySessionMinutes: mergedSettings.dailySessionMinutes,
-      domainProgress: {
-        ...defaultDomainProgress(),
-        ...parsedDomainProgress,
-      },
-    };
-    return {
-      progress: enrichProgress(mergedProgress),
-      settings: mergedSettings,
-      session: parsed.session ?? null,
-    };
+    return normalizeState(JSON.parse(raw) as Partial<BrainCurlsBackup>);
   } catch {
     return defaultState();
   }
@@ -352,6 +362,18 @@ export function finishWorkout() {
 
 export function resetProgress() {
   updateState(() => defaultState());
+}
+
+export function resetAllData() {
+  updateState(() => defaultState());
+}
+
+export function serializeBrainCurlsBackup() {
+  return JSON.stringify(state, null, 2);
+}
+
+export function importBrainCurlsBackup(raw: string) {
+  updateState(() => normalizeState(JSON.parse(raw) as Partial<BrainCurlsBackup>));
 }
 
 export function getWorkoutProgress() {

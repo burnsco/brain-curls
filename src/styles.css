@@ -614,6 +614,33 @@ main {
   background: rgba(103, 232, 249, 0.08);
 }
 
+.backup-upload {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.backup-upload span {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.backup-upload input {
+  color: var(--muted);
+}
+
+.backup-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 180px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font: inherit;
+}
+
 .dashboard-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -861,6 +888,39 @@ main {
 .run-summary-card {
   border-style: dashed;
   animation: float-in 360ms ease both;
+}
+
+.recap-card {
+  display: grid;
+  gap: 16px;
+}
+
+.replay-stats {
+  margin-top: 4px;
+}
+
+.replay-summary-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.replay-strip {
+  display: grid;
+  gap: 10px;
+}
+
+.replay-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.replay-item span {
+  color: var(--muted);
+  font-size: 0.88rem;
 }
 
 .choice-grid {
