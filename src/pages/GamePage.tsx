@@ -73,7 +73,7 @@ export function GamePage() {
   useEffect(() => {
     if (!runSummary) return;
 
-    const target = nextSlug ? `/games/${nextSlug}` : "/dashboard";
+    const target = nextSlug ? `/games/${nextSlug}` : "/session-review";
     const timer = window.setTimeout(() => {
       if (!nextSlug) {
         finishWorkout();
@@ -151,7 +151,7 @@ export function GamePage() {
             onClick={() => {
               void playCue("complete");
               finishWorkout();
-              navigate("/dashboard");
+              navigate("/session-review");
             }}
           >
             Finish session

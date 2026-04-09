@@ -8,6 +8,7 @@ import { WorkoutPage } from "./pages/WorkoutPage";
 import { GamePage } from "./pages/GamePage";
 import { OnboardingPage } from "./pages/OnboardingPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { SessionReviewPage } from "./pages/SessionReviewPage";
 import { useBrainCurlsState } from "./store/brain-curls-store";
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
         <Route path="/workout" element={<WorkoutPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/session-review" element={<SessionReviewPage />} />
         <Route path="/welcome" element={<OnboardingPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
