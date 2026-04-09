@@ -1,0 +1,7 @@
+{
+  "$schema": "https://oxc.rs/schemas/v1.json",
+  "env": {
+    "browser": true,
+    "es2022": true
+  }
+}

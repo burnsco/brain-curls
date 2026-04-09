@@ -1,0 +1,4 @@
+{
+  "$schema": "https://oxc.rs/schemas/v1.json",
+  "lineWidth": 100
+}

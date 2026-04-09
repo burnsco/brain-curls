@@ -1,0 +1,95 @@
+import type { TrainingGame } from "../types";
+
+export const starterGames: TrainingGame[] = [
+  {
+    slug: "sequence-memory",
+    name: "Sequence Memory",
+    status: "ready",
+    domains: ["Memory", "Attention"],
+    hook: "Classic Simon-style play, but with forward, backward, and position-based recall.",
+    mechanic: "Show a layered sequence once, then ask the player to replay it or answer a targeted recall prompt.",
+    notes: [
+      "Add color, sound, number, and symbol layers.",
+      "Increase length and introduce reverse recall.",
+      "Use prompt variants like 'what was the 3rd item?'.",
+    ],
+  },
+  {
+    slug: "grid-memory",
+    name: "Grid Memory",
+    status: "ready",
+    domains: ["Memory", "Spatial"],
+    hook: "Flash highlighted tiles and ask the player to recreate the pattern.",
+    mechanic: "Display a grid pattern, clear it, then let the player reconstruct it under time pressure.",
+    notes: [
+      "Support delayed recall with distractor screens.",
+      "Add moving patterns for advanced sessions.",
+      "Scale grid size and flash duration adaptively.",
+    ],
+  },
+  {
+    slug: "number-span",
+    name: "Number Span",
+    status: "ready",
+    domains: ["Memory", "Speed"],
+    hook: "Working-memory drill with forward, backward, and sorted recall modes.",
+    mechanic: "Present a number string and require exact or transformed recall.",
+    notes: [
+      "Use ascending and descending transforms.",
+      "Track span length separately from accuracy.",
+      "Keep presentation speed tight and consistent.",
+    ],
+  },
+  {
+    slug: "stroop-shift",
+    name: "Stroop Shift",
+    status: "prototype",
+    domains: ["Attention", "Speed"],
+    hook: "Tap the color, not the word, when the two conflict.",
+    mechanic: "Mix congruent and incongruent trials to train inhibition and switching.",
+    notes: [
+      "Introduce speed ramps only after stable accuracy.",
+      "Bias toward 70 to 80 percent success.",
+      "Rotate distractor intensity and response rules.",
+    ],
+  },
+  {
+    slug: "target-tracking",
+    name: "Target Tracking",
+    status: "planned",
+    domains: ["Attention", "Spatial"],
+    hook: "Follow a few moving targets while noise objects move around them.",
+    mechanic: "Force the user to maintain target identity through motion, clustering, and interruptions.",
+    notes: [
+      "Escalate from one target to several targets.",
+      "Add distraction mode with noise and interruptions.",
+      "Score both accuracy and stability over time.",
+    ],
+  },
+  {
+    slug: "pattern-completion",
+    name: "Pattern Completion",
+    status: "planned",
+    domains: ["Reasoning"],
+    hook: "Predict the next item in a visual or numeric sequence.",
+    mechanic: "Show a structured sequence and ask for the continuation or missing element.",
+    notes: [
+      "Support multiple pattern families, not one trick.",
+      "Measure first-try solve rate and time to answer.",
+      "Mix shapes, numbers, and symbol sequences.",
+    ],
+  },
+  {
+    slug: "word-association",
+    name: "Word Association",
+    status: "planned",
+    domains: ["Language", "Speed"],
+    hook: "Find the closest meaning or strongest match under time pressure.",
+    mechanic: "Use rapid-choice verbal prompts with shrinking response windows.",
+    notes: [
+      "Track response latency and confidence.",
+      "Rotate vocabulary bands by difficulty.",
+      "Pair with timed anagrams as a secondary mode.",
+    ],
+  },
+];
