@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { BrainCircuit, LayoutDashboard, Layers3, Sparkles } from "lucide-react";
+import { BrainCircuit, LayoutDashboard, Layers3, Settings2, Sparkles } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 interface ShellProps {
@@ -10,6 +10,7 @@ const navItems = [
   { label: "Workout", href: "/workout", icon: Sparkles },
   { label: "Games", href: "/games", icon: BrainCircuit },
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Settings", href: "/settings", icon: Settings2 },
   { label: "Home", href: "/", icon: Layers3 },
 ];
 

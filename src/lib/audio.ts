@@ -1,3 +1,5 @@
+import { getBrainCurlsState } from "../store/brain-curls-store";
+
 type ToneName = "start" | "success" | "complete" | "select" | "error";
 type GameOutcome = "success" | "failure";
 
@@ -170,14 +172,18 @@ async function playSteps(steps: ToneStep[]) {
 
 function vibrate(pattern: number[]) {
   if (typeof navigator === "undefined" || !("vibrate" in navigator)) return;
+  if (!getBrainCurlsState().settings.hapticsEnabled) return;
   navigator.vibrate(pattern);
 }
 
 export async function playCue(name: ToneName) {
+  if (!getBrainCurlsState().settings.audioEnabled) return;
   await playSteps(cueMap[name]);
 }
 
 export async function playGameFeedback(gameSlug: string, outcome: GameOutcome) {
+  if (!getBrainCurlsState().settings.audioEnabled) return;
+
   const cue = gameCueMap[gameSlug];
   const steps = cue?.[outcome] ?? cueMap[outcome === "success" ? "success" : "error"];
   await playSteps(steps);

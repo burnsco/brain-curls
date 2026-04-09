@@ -42,6 +42,14 @@ export interface ProgressState {
   dailySessionMinutes: DailySessionLength;
 }
 
+export interface AppSettings {
+  audioEnabled: boolean;
+  hapticsEnabled: boolean;
+  reducedMotion: boolean;
+  dailySessionMode: DailySessionMode;
+  dailySessionMinutes: DailySessionLength;
+}
+
 export interface SessionState {
   id: string;
   startedAt: number;
@@ -51,6 +59,7 @@ export interface SessionState {
 
 export interface BrainCurlsState {
   progress: ProgressState;
+  settings: AppSettings;
   session: SessionState | null;
 }
 
@@ -91,8 +100,17 @@ const defaultProgress = (): ProgressState => ({
   dailySessionMinutes: 6,
 });
 
+const defaultSettings = (): AppSettings => ({
+  audioEnabled: true,
+  hapticsEnabled: true,
+  reducedMotion: false,
+  dailySessionMode: "balanced",
+  dailySessionMinutes: 6,
+});
+
 const defaultState = (): BrainCurlsState => ({
   progress: enrichProgress(defaultProgress()),
+  settings: defaultSettings(),
   session: null,
 });
 
@@ -118,10 +136,20 @@ function loadState(): BrainCurlsState {
     if (!raw) return defaultState();
     const parsed = JSON.parse(raw) as Partial<BrainCurlsState>;
     const parsedProgress: Partial<ProgressState> = parsed.progress ?? {};
+    const parsedSettings: Partial<AppSettings> = parsed.settings ?? {};
     const parsedDomainProgress = parsedProgress.domainProgress ?? {};
+    const mergedSettings: AppSettings = {
+      ...defaultSettings(),
+      ...parsedSettings,
+      dailySessionMode: parsedSettings.dailySessionMode ?? parsedProgress.dailySessionMode ?? defaultSettings().dailySessionMode,
+      dailySessionMinutes:
+        parsedSettings.dailySessionMinutes ?? parsedProgress.dailySessionMinutes ?? defaultSettings().dailySessionMinutes,
+    };
     const mergedProgress: ProgressState = {
       ...defaultProgress(),
       ...parsedProgress,
+      dailySessionMode: mergedSettings.dailySessionMode,
+      dailySessionMinutes: mergedSettings.dailySessionMinutes,
       domainProgress: {
         ...defaultDomainProgress(),
         ...parsedDomainProgress,
@@ -129,6 +157,7 @@ function loadState(): BrainCurlsState {
     };
     return {
       progress: enrichProgress(mergedProgress),
+      settings: mergedSettings,
       session: parsed.session ?? null,
     };
   } catch {
@@ -198,10 +227,45 @@ export function completeOnboarding() {
 export function setDailySessionPreferences(mode: DailySessionMode, minutes: DailySessionLength) {
   updateState((current) => ({
     ...current,
+    settings: {
+      ...current.settings,
+      dailySessionMode: mode,
+      dailySessionMinutes: minutes,
+    },
     progress: {
       ...current.progress,
       dailySessionMode: mode,
       dailySessionMinutes: minutes,
+    },
+  }));
+}
+
+export function setAudioEnabled(audioEnabled: boolean) {
+  updateState((current) => ({
+    ...current,
+    settings: {
+      ...current.settings,
+      audioEnabled,
+    },
+  }));
+}
+
+export function setHapticsEnabled(hapticsEnabled: boolean) {
+  updateState((current) => ({
+    ...current,
+    settings: {
+      ...current.settings,
+      hapticsEnabled,
+    },
+  }));
+}
+
+export function setReducedMotionEnabled(reducedMotion: boolean) {
+  updateState((current) => ({
+    ...current,
+    settings: {
+      ...current.settings,
+      reducedMotion,
     },
   }));
 }
@@ -261,6 +325,7 @@ export function completeGameRun(game: TrainingGame, metrics: { accuracy: number;
     };
 
     return {
+      settings: currentState.settings,
       session: currentState.session
         ? {
             ...currentState.session,
