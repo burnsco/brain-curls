@@ -1015,6 +1015,10 @@ main {
   text-align: center;
 }
 
+.recap-card .telemetry-domain-card {
+  margin-top: 0;
+}
+
 .telemetry-layout {
   align-items: start;
 }

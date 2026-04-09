@@ -14,7 +14,7 @@ function formatDuration(ms: number) {
 
 export function SessionReviewPage() {
   const navigate = useNavigate();
-  const { lastWorkoutReview, progress } = useBrainCurlsState();
+  const { lastWorkoutReview, lastWorkoutCoaching, progress } = useBrainCurlsState();
 
   if (!lastWorkoutReview) {
     return (
@@ -110,6 +110,24 @@ export function SessionReviewPage() {
         </Card>
       </div>
       <SessionReviewCharts review={lastWorkoutReview} />
+      <Card className="progress-card recap-card">
+        <p className="panel-label">Next-step coaching</p>
+        <div className="telemetry-domain-list">
+          {lastWorkoutCoaching.length > 0 ? (
+            lastWorkoutCoaching.map((note) => (
+              <div key={note.slug} className="telemetry-domain-card">
+                <div className="telemetry-domain-topline">
+                  <strong>{note.name}</strong>
+                  <span>{note.signal}</span>
+                </div>
+                <p>{note.recommendation}</p>
+              </div>
+            ))
+          ) : (
+            <p className="empty-state">No coaching notes available until a workout is completed.</p>
+          )}
+        </div>
+      </Card>
       <Card className="progress-card">
         <p className="panel-label">Session route</p>
         <p className="game-mechanic">

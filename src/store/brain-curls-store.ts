@@ -71,11 +71,19 @@ export interface WorkoutReviewState {
   sessionRuns: GameRunRecord[];
 }
 
+export interface WorkoutCoachingNote {
+  slug: string;
+  name: string;
+  signal: string;
+  recommendation: string;
+}
+
 export interface BrainCurlsState {
   progress: ProgressState;
   settings: AppSettings;
   session: SessionState | null;
   lastWorkoutReview: WorkoutReviewState | null;
+  lastWorkoutCoaching: WorkoutCoachingNote[];
 }
 
 export interface BrainCurlsBackup {
@@ -151,6 +159,7 @@ const defaultState = (): BrainCurlsState => ({
   settings: defaultSettings(),
   session: null,
   lastWorkoutReview: null,
+  lastWorkoutCoaching: [],
 });
 
 function enrichProgress(progress: ProgressState): ProgressState {
@@ -189,6 +198,7 @@ function normalizeState(snapshot: LegacyBrainCurlsBackup): BrainCurlsState {
     settings: mergedSettings,
     session: snapshot.session ?? null,
     lastWorkoutReview: null,
+    lastWorkoutCoaching: [],
   };
 }
 
@@ -445,6 +455,7 @@ export function completeGameRun(game: TrainingGame, metrics: { accuracy: number;
         : null,
       progress: enrichProgress(nextProgress),
       lastWorkoutReview: currentState.lastWorkoutReview,
+      lastWorkoutCoaching: currentState.lastWorkoutCoaching,
     };
   });
 
@@ -465,6 +476,7 @@ export function finishWorkout() {
       return {
         ...current,
         lastWorkoutReview: null,
+        lastWorkoutCoaching: [],
       };
     }
 
@@ -486,6 +498,28 @@ export function finishWorkout() {
       { domain: null, score: 0 },
     ).domain;
 
+    const coaching = sessionRuns.map((run) => {
+      const signal =
+        run.accuracy >= 0.9
+          ? "Strong accuracy"
+          : run.accuracy >= 0.75
+            ? "Steady accuracy"
+            : "Accuracy needs work";
+      const recommendation =
+        run.reactionMs <= 500
+          ? "Increase the difficulty or tighten the timer."
+          : run.reactionMs <= 700
+            ? "Keep the current pace and maintain consistency."
+            : "Slow the tempo and reduce interference next time.";
+
+      return {
+        slug: run.slug,
+        name: run.name,
+        signal,
+        recommendation,
+      };
+    });
+
     return {
       ...current,
       session: null,
@@ -502,6 +536,7 @@ export function finishWorkout() {
         strongestDomain,
         sessionRuns,
       },
+      lastWorkoutCoaching: coaching,
     };
   });
 }
