@@ -12,7 +12,7 @@ import { StroopShiftGame } from "../games/StroopShiftGame";
 import { TargetTrackingGame } from "../games/TargetTrackingGame";
 import { PatternCompletionGame } from "../games/PatternCompletionGame";
 import { WordAssociationGame } from "../games/WordAssociationGame";
-import { playCue } from "../lib/audio";
+import { playCue, playGameFeedback } from "../lib/audio";
 
 export function GamePage() {
   const { slug } = useParams();
@@ -57,7 +57,7 @@ export function GamePage() {
   const handleComplete = (metrics: { accuracy: number; reactionMs: number }) => {
     const run = completeGameRun(game, metrics);
     setRunSummary(run);
-    void playCue("success");
+    void playGameFeedback(game.slug, metrics.accuracy >= 0.75 ? "success" : "failure");
   };
 
   const nextSlug = session ? getNextWorkoutSlug(game.slug, session.gameSlugs) : null;
