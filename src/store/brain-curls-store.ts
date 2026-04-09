@@ -84,6 +84,7 @@ export interface BrainCurlsState {
   session: SessionState | null;
   lastWorkoutReview: WorkoutReviewState | null;
   lastWorkoutCoaching: WorkoutCoachingNote[];
+  backupHistory: BackupHistoryEntry[];
 }
 
 export interface BrainCurlsBackup {
@@ -106,6 +107,13 @@ export interface BackupPreview {
   imported: BrainCurlsState;
   conflicts: string[];
   changes: string[];
+}
+
+export interface BackupHistoryEntry {
+  kind: "export" | "import" | "reset";
+  note: string;
+  timestamp: number;
+  version: number;
 }
 
 const STORAGE_KEY = "brain-curls:state:v1";
@@ -160,6 +168,7 @@ const defaultState = (): BrainCurlsState => ({
   session: null,
   lastWorkoutReview: null,
   lastWorkoutCoaching: [],
+  backupHistory: [],
 });
 
 function enrichProgress(progress: ProgressState): ProgressState {
@@ -199,6 +208,7 @@ function normalizeState(snapshot: LegacyBrainCurlsBackup): BrainCurlsState {
     session: snapshot.session ?? null,
     lastWorkoutReview: null,
     lastWorkoutCoaching: [],
+    backupHistory: [],
   };
 }
 
@@ -456,6 +466,7 @@ export function completeGameRun(game: TrainingGame, metrics: { accuracy: number;
       progress: enrichProgress(nextProgress),
       lastWorkoutReview: currentState.lastWorkoutReview,
       lastWorkoutCoaching: currentState.lastWorkoutCoaching,
+      backupHistory: currentState.backupHistory,
     };
   });
 
@@ -547,6 +558,13 @@ export function resetProgress() {
 
 export function resetAllData() {
   updateState(() => defaultState());
+}
+
+export function appendBackupHistoryEntry(entry: BackupHistoryEntry) {
+  updateState((current) => ({
+    ...current,
+    backupHistory: [entry, ...current.backupHistory].slice(0, 12),
+  }));
 }
 
 export function serializeBrainCurlsBackup() {

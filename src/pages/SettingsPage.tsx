@@ -5,6 +5,7 @@ import { SectionHeading } from "../components/section-heading";
 import { getLengthLabel, getModeLabel, type DailySessionLength, type DailySessionMode } from "../lib/session-builder";
 import {
   type BackupPreview,
+  appendBackupHistoryEntry,
   importBrainCurlsBackup,
   resetAllData,
   serializeBrainCurlsBackup,
@@ -53,7 +54,7 @@ function ToggleCard({
 }
 
 export function SettingsPage() {
-  const { progress, settings } = useBrainCurlsState();
+  const { progress, settings, backupHistory } = useBrainCurlsState();
   const [backupText, setBackupText] = useState("");
   const [backupMessage, setBackupMessage] = useState("Export a backup or paste one here to restore your state.");
   const [backupMeta, setBackupMeta] = useState<{ version: number; exportedAt: string } | null>(null);
@@ -74,8 +75,9 @@ export function SettingsPage() {
 
   const handleExport = () => {
     const backup = serializeBrainCurlsBackup();
+    const preview = previewBrainCurlsBackup(backup);
     setBackupText(backup);
-    refreshBackupPreview(backup);
+    setBackupPreview(preview);
     try {
       const parsed = JSON.parse(backup) as { version?: number; exportedAt?: string };
       setBackupMeta({
@@ -83,6 +85,12 @@ export function SettingsPage() {
         exportedAt: typeof parsed.exportedAt === "string" ? parsed.exportedAt : new Date().toISOString(),
       });
       setBackupMessage("Backup generated. You can copy it or download it from your browser.");
+      appendBackupHistoryEntry({
+        kind: "export",
+        note: `Exported backup with ${preview.changes.length} previewed changes.`,
+        timestamp: Date.now(),
+        version: typeof parsed.version === "number" ? parsed.version : 0,
+      });
     } catch {
       setBackupMeta(null);
       setBackupMessage("Backup generated. You can copy it or download it from your browser.");
@@ -99,14 +107,23 @@ export function SettingsPage() {
 
   const handleImport = () => {
     try {
+      const preview = previewBrainCurlsBackup(backupText);
       importBrainCurlsBackup(backupText);
-      refreshBackupPreview(backupText);
+      setBackupPreview(preview);
       const parsed = JSON.parse(backupText) as { version?: number; exportedAt?: string };
       setBackupMeta({
         version: typeof parsed.version === "number" ? parsed.version : 1,
         exportedAt: typeof parsed.exportedAt === "string" ? parsed.exportedAt : "legacy",
       });
       setBackupMessage("Backup restored. The app now reflects the imported progress and settings.");
+      appendBackupHistoryEntry({
+        kind: "import",
+        note: preview.conflicts.length
+          ? `Imported with ${preview.conflicts.length} conflict warning${preview.conflicts.length === 1 ? "" : "s"}.`
+          : "Imported cleanly with no conflicts.",
+        timestamp: Date.now(),
+        version: typeof parsed.version === "number" ? parsed.version : 1,
+      });
     } catch {
       setBackupMeta(null);
       setBackupMessage("That backup could not be imported. Check that the JSON is complete and valid.");
@@ -198,7 +215,7 @@ export function SettingsPage() {
 
       <Card className="progress-card">
         <p className="panel-label">Backup and reset</p>
-          <p className="game-mechanic">{backupMessage}</p>
+        <p className="game-mechanic">{backupMessage}</p>
         {backupMeta && (
           <div className="session-summary">
             <span>Version {backupMeta.version}</span>
@@ -276,6 +293,27 @@ export function SettingsPage() {
             rows={8}
           />
         </label>
+      </Card>
+
+      <Card className="progress-card">
+        <p className="panel-label">Backup history</p>
+        <div className="backup-history-list">
+          {backupHistory.length === 0 ? (
+            <p className="empty-state">No backup activity recorded yet.</p>
+          ) : (
+            backupHistory.map((entry) => (
+              <div key={`${entry.kind}-${entry.timestamp}`} className="backup-history-item">
+                <div>
+                  <strong>{entry.kind}</strong>
+                  <span>{entry.note}</span>
+                </div>
+                <small>
+                  v{entry.version} · {new Date(entry.timestamp).toLocaleString()}
+                </small>
+              </div>
+            ))
+          )}
+        </div>
       </Card>
 
       <Card className="hero-panel">
