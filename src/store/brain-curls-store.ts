@@ -57,19 +57,42 @@ export interface SessionState {
   completedSlugs: string[];
 }
 
+export interface WorkoutReviewState {
+  completedAt: number;
+  startedAt: number;
+  durationMs: number;
+  gameSlugs: string[];
+  runCount: number;
+  totalScore: number;
+  averageAccuracy: number;
+  averageReactionMs: number;
+  bestScore: number;
+  strongestDomain: CognitiveDomain | null;
+}
+
 export interface BrainCurlsState {
   progress: ProgressState;
   settings: AppSettings;
   session: SessionState | null;
+  lastWorkoutReview: WorkoutReviewState | null;
 }
 
 export interface BrainCurlsBackup {
+  version: number;
+  exportedAt: string;
   progress: ProgressState;
   settings: AppSettings;
   session: SessionState | null;
 }
 
+interface LegacyBrainCurlsBackup {
+  progress?: Partial<ProgressState>;
+  settings?: Partial<AppSettings>;
+  session?: SessionState | null;
+}
+
 const STORAGE_KEY = "brain-curls:state:v1";
+const BACKUP_VERSION = 2;
 const MAX_RECENT_RUNS = 8;
 
 const defaultDomainProgress = (): Record<CognitiveDomain, DomainProgress> => {
@@ -118,6 +141,7 @@ const defaultState = (): BrainCurlsState => ({
   progress: enrichProgress(defaultProgress()),
   settings: defaultSettings(),
   session: null,
+  lastWorkoutReview: null,
 });
 
 function enrichProgress(progress: ProgressState): ProgressState {
@@ -129,7 +153,7 @@ function enrichProgress(progress: ProgressState): ProgressState {
   };
 }
 
-function normalizeState(snapshot: Partial<BrainCurlsBackup>): BrainCurlsState {
+function normalizeState(snapshot: LegacyBrainCurlsBackup): BrainCurlsState {
   const parsedProgress: Partial<ProgressState> = snapshot.progress ?? {};
   const parsedSettings: Partial<AppSettings> = snapshot.settings ?? {};
   const parsedDomainProgress = parsedProgress.domainProgress ?? {};
@@ -155,7 +179,27 @@ function normalizeState(snapshot: Partial<BrainCurlsBackup>): BrainCurlsState {
     progress: enrichProgress(mergedProgress),
     settings: mergedSettings,
     session: snapshot.session ?? null,
+    lastWorkoutReview: null,
   };
+}
+
+function parseBackup(raw: string): LegacyBrainCurlsBackup {
+  const parsed = JSON.parse(raw) as Partial<BrainCurlsBackup> | LegacyBrainCurlsBackup;
+
+  if (typeof parsed === "object" && parsed && "version" in parsed) {
+    const version = Number((parsed as Partial<BrainCurlsBackup>).version);
+    if (version !== BACKUP_VERSION) {
+      throw new Error(`Unsupported backup version: ${String((parsed as Partial<BrainCurlsBackup>).version)}`);
+    }
+
+    return {
+      progress: (parsed as Partial<BrainCurlsBackup>).progress,
+      settings: (parsed as Partial<BrainCurlsBackup>).settings,
+      session: (parsed as Partial<BrainCurlsBackup>).session,
+    };
+  }
+
+  return parsed as LegacyBrainCurlsBackup;
 }
 
 let state = loadState();
@@ -169,7 +213,7 @@ function loadState(): BrainCurlsState {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState();
-    return normalizeState(JSON.parse(raw) as Partial<BrainCurlsBackup>);
+    return normalizeState(parseBackup(raw));
   } catch {
     return defaultState();
   }
@@ -343,6 +387,7 @@ export function completeGameRun(game: TrainingGame, metrics: { accuracy: number;
           }
         : null,
       progress: enrichProgress(nextProgress),
+      lastWorkoutReview: currentState.lastWorkoutReview,
     };
   });
 
@@ -357,7 +402,50 @@ export function resetWorkout() {
 }
 
 export function finishWorkout() {
-  resetWorkout();
+  updateState((current) => {
+    const session = current.session;
+    if (!session) {
+      return {
+        ...current,
+        lastWorkoutReview: null,
+      };
+    }
+
+    const sessionRuns = current.progress.recentRuns
+      .filter((run) => run.completedAt >= session.startedAt && session.gameSlugs.includes(run.slug))
+      .slice(0, session.gameSlugs.length);
+    const totalScore = sessionRuns.reduce((sum, run) => sum + run.score, 0);
+    const averageAccuracy = sessionRuns.length ? sessionRuns.reduce((sum, run) => sum + run.accuracy, 0) / sessionRuns.length : 0;
+    const averageReactionMs = sessionRuns.length
+      ? sessionRuns.reduce((sum, run) => sum + run.reactionMs, 0) / sessionRuns.length
+      : 0;
+    const strongestDomain = sessionRuns.reduce<{ domain: CognitiveDomain | null; score: number }>(
+      (best, run) => {
+        if (run.score > best.score) {
+          return { domain: run.domain, score: run.score };
+        }
+        return best;
+      },
+      { domain: null, score: 0 },
+    ).domain;
+
+    return {
+      ...current,
+      session: null,
+      lastWorkoutReview: {
+        completedAt: Date.now(),
+        startedAt: session.startedAt,
+        durationMs: Date.now() - session.startedAt,
+        gameSlugs: session.gameSlugs,
+        runCount: sessionRuns.length,
+        totalScore,
+        averageAccuracy,
+        averageReactionMs,
+        bestScore: sessionRuns.reduce((best, run) => Math.max(best, run.score), 0),
+        strongestDomain,
+      },
+    };
+  });
 }
 
 export function resetProgress() {
@@ -369,11 +457,18 @@ export function resetAllData() {
 }
 
 export function serializeBrainCurlsBackup() {
-  return JSON.stringify(state, null, 2);
+  const backup: BrainCurlsBackup = {
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    progress: state.progress,
+    settings: state.settings,
+    session: state.session,
+  };
+  return JSON.stringify(backup, null, 2);
 }
 
 export function importBrainCurlsBackup(raw: string) {
-  updateState(() => normalizeState(JSON.parse(raw) as Partial<BrainCurlsBackup>));
+  updateState(() => normalizeState(parseBackup(raw)));
 }
 
 export function getWorkoutProgress() {

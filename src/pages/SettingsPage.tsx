@@ -54,11 +54,22 @@ export function SettingsPage() {
   const { progress, settings } = useBrainCurlsState();
   const [backupText, setBackupText] = useState("");
   const [backupMessage, setBackupMessage] = useState("Export a backup or paste one here to restore your state.");
+  const [backupMeta, setBackupMeta] = useState<{ version: number; exportedAt: string } | null>(null);
 
   const handleExport = () => {
     const backup = serializeBrainCurlsBackup();
     setBackupText(backup);
-    setBackupMessage("Backup generated. You can copy it or download it from your browser.");
+    try {
+      const parsed = JSON.parse(backup) as { version?: number; exportedAt?: string };
+      setBackupMeta({
+        version: typeof parsed.version === "number" ? parsed.version : 0,
+        exportedAt: typeof parsed.exportedAt === "string" ? parsed.exportedAt : new Date().toISOString(),
+      });
+      setBackupMessage("Backup generated. You can copy it or download it from your browser.");
+    } catch {
+      setBackupMeta(null);
+      setBackupMessage("Backup generated. You can copy it or download it from your browser.");
+    }
 
     const blob = new Blob([backup], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -72,8 +83,14 @@ export function SettingsPage() {
   const handleImport = () => {
     try {
       importBrainCurlsBackup(backupText);
+      const parsed = JSON.parse(backupText) as { version?: number; exportedAt?: string };
+      setBackupMeta({
+        version: typeof parsed.version === "number" ? parsed.version : 1,
+        exportedAt: typeof parsed.exportedAt === "string" ? parsed.exportedAt : "legacy",
+      });
       setBackupMessage("Backup restored. The app now reflects the imported progress and settings.");
     } catch {
+      setBackupMeta(null);
       setBackupMessage("That backup could not be imported. Check that the JSON is complete and valid.");
     }
   };
@@ -162,7 +179,13 @@ export function SettingsPage() {
 
       <Card className="progress-card">
         <p className="panel-label">Backup and reset</p>
-        <p className="game-mechanic">{backupMessage}</p>
+          <p className="game-mechanic">{backupMessage}</p>
+        {backupMeta && (
+          <div className="session-summary">
+            <span>Version {backupMeta.version}</span>
+            <span>{backupMeta.exportedAt === "legacy" ? "Legacy backup" : new Date(backupMeta.exportedAt).toLocaleString()}</span>
+          </div>
+        )}
         <div className="hero-actions">
           <button type="button" className="button button-primary" onClick={handleExport}>
             <Sparkles size={16} />
