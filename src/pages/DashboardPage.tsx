@@ -1,12 +1,16 @@
 import { SectionHeading } from "../components/section-heading";
 import { Card } from "../components/card";
+import { DifficultyTelemetry } from "../components/difficulty-telemetry";
 import { ProgressCharts } from "../components/progress-charts";
 import { ProgressHistory } from "../components/progress-history";
+import { buildDomainTelemetry, buildOverallDifficultyTelemetry } from "../lib/telemetry";
 import { useBrainCurlsState } from "../store/brain-curls-store";
 
 export function DashboardPage() {
   const { progress } = useBrainCurlsState();
   const recent = progress.recentRuns;
+  const domainTelemetry = buildDomainTelemetry(progress);
+  const overall = buildOverallDifficultyTelemetry(progress);
 
   return (
     <main className="section-page">
@@ -43,6 +47,13 @@ export function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      <DifficultyTelemetry
+        domains={domainTelemetry}
+        overallLevel={overall.level}
+        targetAccuracy={overall.targetAccuracy}
+        speedBudgetMs={overall.speedBudgetMs}
+      />
 
       <ProgressCharts progress={progress} />
 

@@ -923,6 +923,80 @@ main {
   font-size: 0.88rem;
 }
 
+.telemetry-layout {
+  align-items: start;
+}
+
+.telemetry-card {
+  display: grid;
+  gap: 14px;
+}
+
+.telemetry-note-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.telemetry-note-grid > div {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.telemetry-note-grid p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.telemetry-domain-list {
+  display: grid;
+  gap: 12px;
+}
+
+.telemetry-domain-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.telemetry-domain-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.telemetry-domain-topline span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.telemetry-domain-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.telemetry-domain-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.telemetry-domain-metrics span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
 .choice-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
