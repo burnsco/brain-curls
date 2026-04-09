@@ -1,3 +1,5 @@
+import { starterGames } from "../data/games";
+import { getNextUnlock, getUnlockSteps } from "./progression";
 import { estimateNextDifficulty, type DifficultyState } from "./difficulty";
 import type { CognitiveDomain } from "../types";
 import type { ProgressState } from "../store/brain-curls-store";
@@ -11,6 +13,26 @@ export interface DomainTelemetry {
   difficulty: DifficultyState;
   explanation: string;
   recommendation: string;
+}
+
+export interface GameTelemetry {
+  slug: string;
+  name: string;
+  runs: number;
+  bestScore: number;
+  averageAccuracy: number;
+  averageReactionMs: number;
+  lastPlayedAt: number | null;
+  summary: string;
+}
+
+export interface UnlockTelemetry {
+  slug: string;
+  name: string;
+  runsRequired: number;
+  unlocked: boolean;
+  summary: string;
+  status: string;
 }
 
 function formatPercent(value: number) {
@@ -75,5 +97,65 @@ export function buildOverallDifficultyTelemetry(progress: ProgressState) {
     accuracy: recent ? recent.accuracy : 0.78,
     reactionMs: recent ? recent.reactionMs : 750,
     streak: progress.currentStreak,
+  });
+}
+
+export function buildGameTelemetry(progress: ProgressState): GameTelemetry[] {
+  return starterGames.map((game) => {
+    const runs = progress.recentRuns.filter((run) => run.slug === game.slug);
+    const totalAccuracy = runs.reduce((sum, run) => sum + run.accuracy, 0);
+    const totalReactionMs = runs.reduce((sum, run) => sum + run.reactionMs, 0);
+    const bestScore = runs.reduce((best, run) => Math.max(best, run.score), 0);
+    const lastPlayedAt = runs[0]?.completedAt ?? null;
+    const summary =
+      runs.length === 0
+        ? "Not played yet. This drill will appear in the queue after unlocking."
+        : runs.length === 1
+          ? `First pass landed at ${Math.round(runs[0].accuracy * 100)}% accuracy.`
+          : `Average ${Math.round((totalAccuracy / runs.length) * 100)}% accuracy across ${runs.length} runs.`;
+
+    return {
+      slug: game.slug,
+      name: game.name,
+      runs: runs.length,
+      bestScore,
+      averageAccuracy: runs.length ? totalAccuracy / runs.length : 0,
+      averageReactionMs: runs.length ? totalReactionMs / runs.length : 0,
+      lastPlayedAt,
+      summary,
+    };
+  });
+}
+
+export function buildUnlockTelemetry(progress: ProgressState): UnlockTelemetry[] {
+  const steps = getUnlockSteps(progress);
+  const nextUnlock = getNextUnlock(progress);
+
+  return steps.map((step, index) => {
+    const previous = index > 0 ? steps[index - 1] : null;
+    const unlockedCount = steps.filter((item) => item.unlocked).length;
+
+    const summary = step.unlocked
+      ? `${step.name} is already available, so it can stay in the workout queue.`
+      : `${step.name} opens after ${step.runsRequired} total runs.`;
+
+    const status = step.unlocked
+      ? "Unlocked"
+      : nextUnlock?.label === step.name
+        ? `Next unlock in ${nextUnlock.remainingRuns} run${nextUnlock.remainingRuns === 1 ? "" : "s"}`
+        : `Queued behind ${Math.max(0, step.runsRequired - progress.totalRuns)} more run${Math.max(0, step.runsRequired - progress.totalRuns) === 1 ? "" : "s"}`;
+
+    const detail = previous
+      ? `${previous.name} opens before this drill, then the queue expands to ${Math.max(0, unlockedCount)} unlocked games.`
+      : "This is the starter baseline and is always available.";
+
+    return {
+      slug: step.slug,
+      name: step.name,
+      runsRequired: step.runsRequired,
+      unlocked: step.unlocked,
+      summary: `${summary} ${detail}`,
+      status,
+    };
   });
 }

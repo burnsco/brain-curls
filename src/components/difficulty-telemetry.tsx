@@ -1,14 +1,23 @@
 import { Card } from "./card";
-import type { DomainTelemetry } from "../lib/telemetry";
+import type { DomainTelemetry, GameTelemetry, UnlockTelemetry } from "../lib/telemetry";
 
 interface DifficultyTelemetryProps {
   domains: DomainTelemetry[];
+  games: GameTelemetry[];
+  unlocks: UnlockTelemetry[];
   overallLevel: number;
   targetAccuracy: number;
   speedBudgetMs: number;
 }
 
-export function DifficultyTelemetry({ domains, overallLevel, targetAccuracy, speedBudgetMs }: DifficultyTelemetryProps) {
+export function DifficultyTelemetry({
+  domains,
+  games,
+  unlocks,
+  overallLevel,
+  targetAccuracy,
+  speedBudgetMs,
+}: DifficultyTelemetryProps) {
   return (
     <div className="progress-layout telemetry-layout">
       <Card className="progress-card telemetry-card">
@@ -53,6 +62,45 @@ export function DifficultyTelemetry({ domains, overallLevel, targetAccuracy, spe
                 <span>best {domain.bestScore}</span>
               </div>
               <small>{domain.recommendation}</small>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="progress-card telemetry-card telemetry-wide">
+        <p className="panel-label">Game detail</p>
+        <div className="telemetry-domain-list">
+          {games.map((game) => (
+            <div key={game.slug} className="telemetry-domain-card">
+              <div className="telemetry-domain-topline">
+                <strong>{game.name}</strong>
+                <span>{game.runs} runs</span>
+              </div>
+              <p>{game.summary}</p>
+              <div className="telemetry-domain-metrics">
+                <span>best {game.bestScore}</span>
+                <span>avg {Math.round(game.averageAccuracy * 100)}%</span>
+                <span>{Math.round(game.averageReactionMs)} ms</span>
+              </div>
+              <small>{game.lastPlayedAt ? `Last played ${new Date(game.lastPlayedAt).toLocaleDateString()}` : "Not played yet"}</small>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="progress-card telemetry-card telemetry-wide">
+        <p className="panel-label">Unlock explanations</p>
+        <div className="telemetry-domain-list">
+          {unlocks.map((unlock) => (
+            <div key={unlock.slug} className="telemetry-domain-card">
+              <div className="telemetry-domain-topline">
+                <strong>{unlock.name}</strong>
+                <span>{unlock.status}</span>
+              </div>
+              <p>{unlock.summary}</p>
+              <div className="telemetry-domain-metrics">
+                <span>{unlock.unlocked ? "Unlocked" : `${unlock.runsRequired} total runs`}</span>
+              </div>
             </div>
           ))}
         </div>

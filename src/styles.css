@@ -1024,6 +1024,10 @@ main {
   gap: 14px;
 }
 
+.telemetry-wide {
+  grid-column: 1 / -1;
+}
+
 .telemetry-note-grid {
   display: grid;
   gap: 12px;
