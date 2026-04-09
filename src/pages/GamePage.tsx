@@ -13,6 +13,8 @@ import { TargetTrackingGame } from "../games/TargetTrackingGame";
 import { PatternCompletionGame } from "../games/PatternCompletionGame";
 import { WordAssociationGame } from "../games/WordAssociationGame";
 import { playCue, playGameFeedback } from "../lib/audio";
+import { GameReplaySummary } from "../components/game-replay-summary";
+import { getGameEndRecap, getReplayStats, type GameEndRecap } from "../lib/run-recaps";
 
 export function GamePage() {
   const { slug } = useParams();
@@ -24,9 +26,14 @@ export function GamePage() {
     score: number;
     level: number;
   } | null>(null);
+  const [endRecap, setEndRecap] = useState<GameEndRecap | null>(null);
 
   const game = useMemo(() => (slug ? getGameBySlug(slug) : undefined), [slug]);
   const isUnlocked = game ? progress.unlockedGameSlugs.includes(game.slug) : false;
+  const replayStats = useMemo(
+    () => (game ? getReplayStats(progress.recentRuns, game.slug) : null),
+    [game, progress.recentRuns],
+  );
 
   if (!game) {
     return (
@@ -57,6 +64,7 @@ export function GamePage() {
   const handleComplete = (metrics: { accuracy: number; reactionMs: number }) => {
     const run = completeGameRun(game, metrics);
     setRunSummary(run);
+    setEndRecap(getGameEndRecap(game, run));
     void playGameFeedback(game.slug, metrics.accuracy >= 0.75 ? "success" : "failure");
   };
 
@@ -110,13 +118,19 @@ export function GamePage() {
       {runSummary && (
         <Card className="progress-card run-summary-card">
           <p className="panel-label">Run complete</p>
-          <h3>{runSummary.score} points</h3>
-          <p>
-            Accuracy {Math.round(runSummary.accuracy * 100)}% · {runSummary.reactionMs} ms · level {runSummary.level}
-          </p>
-          <p>{nextSlug ? `Auto-advancing to /games/${nextSlug}` : "Wrapping up the workout and returning to the dashboard."}</p>
+          <h3>{endRecap?.title ?? `${game.name} complete`}</h3>
+          <p>{endRecap?.description ?? "Run complete."}</p>
+          <div className="session-summary replay-summary-strip">
+            <span>{runSummary.score} points</span>
+            <span>{Math.round(runSummary.accuracy * 100)}% accuracy</span>
+            <span>{runSummary.reactionMs} ms reaction</span>
+            <span>Level {runSummary.level}</span>
+          </div>
+          <p>{endRecap?.nextStep ?? (nextSlug ? `Auto-advancing to /games/${nextSlug}` : "Wrapping up the workout and returning to the dashboard.")}</p>
         </Card>
       )}
+
+      {replayStats && <GameReplaySummary label={`${game.name} replay summary`} stats={replayStats} />}
 
       <div className="game-next-actions">
         {nextSlug ? (
